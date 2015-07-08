@@ -20,13 +20,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-/**
- * Created by Edwin on 28/02/2015.
- */
 public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
     private Activity mActivity;
-    private ArrayList<String> mFilePaths = new ArrayList<String>();
+    private ArrayList<String> mFilePaths = new ArrayList<>();
 
     public GridAdapter(Activity activity, ArrayList<String> filePaths) {
         super();
@@ -39,8 +36,7 @@ public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.grid_item, viewGroup, false);
-        ViewHolder viewHolder = new ViewHolder(v);
-        return viewHolder;
+        return new ViewHolder(v);
     }
 
     @Override
@@ -73,7 +69,7 @@ public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     }
 
     private String getName(String filePath) {
-        String result = "";
+        String result;
         int len = filePath.length();
         result = filePath.substring(len - 14, len - 4);
         return result;
@@ -95,6 +91,8 @@ public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
             Intent i = new Intent(mActivity, FullScreenViewActivity.class);
             i.putExtra("position", _postion);
             mActivity.startActivity(i);
+            mActivity.overridePendingTransition(R.anim.zoom_enter, R.anim.zoom_exit);
+
         }
 
     }
