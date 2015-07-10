@@ -22,11 +22,11 @@ public class Utils {
 
     // Reading file paths from SDCard
     public ArrayList<String> getFilePaths() {
-        ArrayList<String> filePaths = new ArrayList<String>();
+        ArrayList<String> filePaths = new ArrayList<>();
 
         File directory = new File(
                 android.os.Environment.getExternalStorageDirectory()
-                        + File.separator + AppConstant.PHOTO_ALBUM);
+                        + File.separator + AppConstant.DEFAULT_DIR_NAME);
 
         // check for directory
         if (directory.isDirectory()) {
@@ -37,10 +37,10 @@ public class Utils {
             if (listFiles.length > 0) {
 
                 // loop through all files
-                for (int i = 0; i < listFiles.length; i++) {
+                for (File listFile : listFiles) {
 
                     // get file path
-                    String filePath = listFiles[i].getAbsolutePath();
+                    String filePath = listFile.getAbsolutePath();
 
                     // check for supported file extension
                     if (IsSupportedFile(filePath)) {
@@ -52,7 +52,7 @@ public class Utils {
                 // image directory is empty
                 Toast.makeText(
                         _context,
-                        AppConstant.PHOTO_ALBUM
+                        AppConstant.DEFAULT_DIR_NAME
                                 + " is empty. Please load some images in it !",
                         Toast.LENGTH_LONG).show();
             }
@@ -60,7 +60,7 @@ public class Utils {
         } else {
             AlertDialog.Builder alert = new AlertDialog.Builder(_context);
             alert.setTitle("Error!");
-            alert.setMessage(AppConstant.PHOTO_ALBUM
+            alert.setMessage(AppConstant.DEFAULT_DIR_NAME
                     + " directory path is not valid! Please set the image directory name AppConstant.java class");
             alert.setPositiveButton("OK", null);
             alert.show();
