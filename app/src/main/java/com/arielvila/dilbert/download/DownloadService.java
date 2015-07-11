@@ -1,10 +1,14 @@
-package com.arielvila.dilbert.helper;
+package com.arielvila.dilbert.download;
 
-import android.content.Context;
+import android.app.IntentService;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.arielvila.dilbert.R;
+import com.arielvila.dilbert.helper.AppConstant;
+import com.arielvila.dilbert.helper.DirContents;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -20,46 +24,39 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-public class GetStrips {
-    private final static String URL_HOST = "http://dilbert.com";
-    private static String dataDir = "/storage/sdcard/Dilbert";
-    private static String lastDay = "2015-05-29";
-    private static boolean running = false;
-    private static Context callerActivity = null;
-    private static ArrayList<String> links = new ArrayList<String>();
-    private static ArrayList<String> names = new ArrayList<String>();
-    private static StringBuffer log = new StringBuffer();
+public class DownloadService extends IntentService {
+    public DownloadService() {
+        super("Dilbert Download Service");
+    }
 
-    public static void getStrips(Context caller) {
-        callerActivity = caller;
-        //SharedPreferences prefs = callerActivity.getSharedPreferences(Main.PREF_PACKAGE, Context.MODE_PRIVATE);
-        //dataDir = prefs.getString("datadir", "");
-        //lastDay = prefs.getString("lastday", "");
-        if (!running) {
-            Toast.makeText(callerActivity, R.string.gettingStrips, Toast.LENGTH_SHORT).show();
-            Thread t = new Thread() {
-                public void run() {
-                    running = true;
-                    GetStrips getStrips = new GetStrips();
-                    getStrips.getAllStrips();
-                    running = false;
-                    //callerActivity.refreshList();
-                }
-            };
-            t.start();
+    public static final String TAG = "Download Service";
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String dataDir = prefs.getString("datadir", "");
+        DirContents.getIntance().refreshDataDir(dataDir);
+        String lastDataFile = DirContents.getIntance().getLastDataFile();
+        String lastDay = lastDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
+        String firstDay = prefs.getString("firstday", "");
+        if (lastDay.equals("") || firstDay.compareTo(lastDay) < 0) {
+            lastDay = firstDay;
         }
+        Log.i(TAG, "lastDay: " + lastDay);
+        getAllStrips(dataDir, lastDay);
+        AlarmReceiver.completeWakefulIntent(intent);
     }
 
-    public static boolean isRunning() {
-        return running;
+    private final static String URL_HOST = "http://dilbert.com";
+    private static ArrayList<String> links = new ArrayList<>();
+    private static ArrayList<String> names = new ArrayList<>();
+
+    public void getAllStrips(String dataDir, String lastDay) {
+        getPages(lastDay);
+        saveImages(dataDir);
     }
 
-    public void getAllStrips() {
-        getPages();
-        saveImages();
-    }
-
-    private void getPages() {
+    private void getPages(String lastDay) {
         boolean found = false;
         String pageReference = "";
         String stripHdr = "js_comic_container_";
@@ -68,7 +65,7 @@ public class GetStrips {
             while (!found) {
                 StringBuffer page;
                 page = getPage(pageReference);
-                Log.i("GetStrips", "page size: " + page.length());
+                Log.i(TAG, "page size: " + page.length());
                 int indexLastDay = page.indexOf(lastStrip);
                 found = (indexLastDay >= 0);
                 int index = 0;
@@ -91,14 +88,14 @@ public class GetStrips {
                 }
                 if (!found) {
                     index = page.indexOf("<div id=\"infinite-scrolling\"");
-                    Log.i("GetStrips", "index: " + index);
+                    Log.i(TAG, "index: " + index);
                     if (index >= 0) {
                         int indexPage = page.indexOf("href=\"", index);
                         if (indexPage >= 0) {
                             int indexPageEnd = page.indexOf("\"", indexPage + 6);
                             if (indexPageEnd >= 0) {
                                 pageReference = page.substring(indexPage + 6, indexPageEnd);
-                                Log.i("GetStrips", "pageReference: " + pageReference);
+                                Log.i(TAG, "pageReference: " + pageReference);
                             }
                         }
                     }
@@ -106,17 +103,18 @@ public class GetStrips {
             }
         } catch (Exception e) {
             // TODO: correct
-            Log.e("GetStrips.getPages()", e.toString());
+            Log.e(TAG, "Error in getPages(): " + e.toString());
             //callerActivity.showError(e);
         }
+        Log.i(TAG, "Finished getPages()");
     }
 
-    private void saveImages() {
+    private void saveImages(String dataDir) {
         int qtty = links.size();
         try {
             for (int i = 0; i < qtty; i++) {
                 String name = names.get(i);
-                saveImage(name, links.get(i));
+                saveImage(dataDir, name, links.get(i));
                 //setLastDate(name.substring(0, 10));
                 // TODO: que es Main?
                 //Main.normalFiles.add(name);
@@ -124,9 +122,12 @@ public class GetStrips {
             }
         } catch (Exception e) {
             // TODO: correct
-            Log.e("GetStrips.saveImages()", e.toString());
+            Log.e(TAG, "Error in saveImages(): " + e.toString());
             //callerActivity.showError(e);
         }
+        Log.i(TAG, "Finished saveImagess()");
+        Intent localIntent = new Intent(AppConstant.SAVED_ALL_FILES_ACTION);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
     private StringBuffer getPage(String pageReference) throws IOException {
@@ -150,7 +151,7 @@ public class GetStrips {
         return page;
     }
 
-    private void saveImage(String graphName, String graphUrl) throws IOException {
+    private void saveImage(String dataDir, String graphName, String graphUrl) throws IOException {
         HttpUriRequest request = null;
         HttpResponse resp = null;
         InputStream is = null;
@@ -163,27 +164,26 @@ public class GetStrips {
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        File prefNew = new File(dataDir + "/" + graphName);
-        OutputStream out = new FileOutputStream(prefNew);
-        byte[] contents = new byte[1024];
-        int bytesRead;
-        BufferedInputStream bis = new BufferedInputStream(is);
-        String extension = "";
-        while ((bytesRead = bis.read(contents)) != -1) {
-            if (extension.equals("")) {
-                extension = (contents[0] == 'G') ? ".gif" : ".jpg";
+        File gifFile = new File(dataDir + "/" + graphName + ".gif");
+        File jpgFile = new File(dataDir + "/" + graphName + ".jpg");
+        if (!gifFile.exists() && !jpgFile.exists()) {
+            File prefNew = new File(dataDir + "/" + graphName);
+            OutputStream out = new FileOutputStream(prefNew);
+            byte[] contents = new byte[1024];
+            int bytesRead;
+            BufferedInputStream bis = new BufferedInputStream(is);
+            String extension = "";
+            while ((bytesRead = bis.read(contents)) != -1) {
+                if (extension.equals("")) {
+                    extension = (contents[0] == 'G') ? ".gif" : ".jpg";
+                }
+                out.write(contents, 0, bytesRead);
             }
-            out.write(contents, 0, bytesRead);
+            out.close();
+            prefNew.renameTo(new File(dataDir + "/" + graphName + extension));
+            Log.i(TAG, "saved file: " + dataDir + "/" + graphName + extension);
+            Intent localIntent = new Intent(AppConstant.SAVED_FILE_ACTION);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
         }
-        out.close();
-        prefNew.renameTo(new File(dataDir + "/" + graphName + extension));
-        Log.i("GetStrips.saveImages()", "Saved " + dataDir + "/" + graphName + extension);
-    }
-
-    private void setLastDate(String lastDay) {
-//        SharedPreferences prefs = callerActivity.getSharedPreferences(Main.PREF_PACKAGE, Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = prefs.edit();
-//        editor.putString("lastday", lastDay);
-//        editor.commit();
     }
 }

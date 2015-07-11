@@ -4,13 +4,14 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 
 public class DirContents {
     private static DirContents intance = null;
 
-    private ArrayList<String> dataDir;
-    private ArrayList<String> favDir;
+    private ArrayList<String> dataDir = new ArrayList<>();
+    private ArrayList<String> favDir = new ArrayList<>();
 
     public static DirContents getIntance() {
         if (intance == null) {
@@ -28,15 +29,24 @@ public class DirContents {
     }
 
     public void refreshDataDir(String directoryName) {
-        dataDir = getFilePaths(directoryName);
+        refreshListDir(dataDir, directoryName);
     }
 
     public void refreshFavDir(String directoryName) {
-        favDir = getFilePaths(directoryName);
+        refreshListDir(favDir, directoryName);
     }
 
-    private ArrayList<String> getFilePaths(String directoryName) {
-        ArrayList<String> filePaths = new ArrayList<>();
+    public String getLastDataFile() {
+        String result = "";
+        int last = dataDir.size();
+        if (last > 0) {
+            result = dataDir.get(last - 1);
+        }
+        return result;
+    }
+
+    private void refreshListDir(ArrayList<String> listDir, String directoryName) {
+        listDir.clear();
         File directory = new File(directoryName);
         // check for directory
         if (directory.isDirectory()) {
@@ -51,26 +61,19 @@ public class DirContents {
                     // check for supported file extension
                     if (IsSupportedFile(filePath)) {
                         // Add image path to array list
-                        filePaths.add(filePath);
+                        listDir.add(filePath);
                     }
                 }
             }
+            Collections.sort(listDir);
         } else {
             Log.e("DirContents", "Error - Not a directory: " + directoryName);
         }
-        return filePaths;
     }
 
     // Check supported file extensions
     private boolean IsSupportedFile(String filePath) {
         String ext = filePath.substring((filePath.lastIndexOf(".") + 1), filePath.length());
-        if (AppConstant.FILE_EXTN.contains(ext.toLowerCase(Locale.getDefault()))) {
-            return true;
-        } else {
-            return false;
-        }
+        return AppConstant.FILE_EXTN.contains(ext.toLowerCase(Locale.getDefault()));
     }
-
-
-
 }

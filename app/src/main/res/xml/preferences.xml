@@ -1,13 +1,13 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="preference_screen">
     <PreferenceCategory
-        android:key="preference_screen"
         android:title="@string/prefTitle"
         android:summary="@string/prefSummary">
         <EditTextPreference
-            android:title="@string/prefLastdateTitle"
-            android:summary="@string/prefLastdateSummary"
-            android:dialogTitle="@string/prefLastdateTitle"
-            android:key="lastday"
+            android:title="@string/prefFirstdayTitle"
+            android:summary="@string/prefFirstdaySummary"
+            android:dialogTitle="@string/prefFirstdayTitle"
+            android:key="firstday"
             android:defaultValue="">
         </EditTextPreference>
         <EditTextPreference
@@ -28,6 +28,13 @@
             android:summary="@string/prefOpenLastSummary"
             android:title="@string/prefOpenLastTitle"
             android:key="openlast"
+            android:defaultValue="true">
+        </CheckBoxPreference>
+        <CheckBoxPreference
+            android:key="firstRun"
+            android:shouldDisableView="true"
+            android:enabled="false"
+            android:selectable="false"
             android:defaultValue="true">
         </CheckBoxPreference>
         <EditTextPreference

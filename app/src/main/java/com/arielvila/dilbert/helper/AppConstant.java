@@ -18,4 +18,9 @@ public class AppConstant {
 
     // supported file formats
     public static final List<String> FILE_EXTN = Arrays.asList("jpg", "jpeg", "png", "gif");
+
+    // Defines a custom Intent action
+    public static final String SAVED_FILE_ACTION = "com.arielvila.dilbert.SAVED_FILE_ACTION";
+
+    public static final String SAVED_ALL_FILES_ACTION = "com.arielvila.dilbert.SAVED_ALL_FILES_ACTION";
 }

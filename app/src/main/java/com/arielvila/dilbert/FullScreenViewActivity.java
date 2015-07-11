@@ -7,7 +7,7 @@ import android.support.v4.view.ViewPager;
 
 import com.arielvila.dilbert.adapter.FullScreenImageAdapter;
 import com.arielvila.dilbert.animation.DepthPageTransformer;
-import com.arielvila.dilbert.helper.Utils;
+import com.arielvila.dilbert.helper.DirContents;
 
 public class FullScreenViewActivity extends FragmentActivity {
 
@@ -16,19 +16,18 @@ public class FullScreenViewActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.full_screen_view);
 
-        Utils utils;
         FullScreenImageAdapter adapter;
         ViewPager viewPager;
 
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setPageTransformer(true, new DepthPageTransformer());
 
-        utils = new Utils(getApplicationContext());
-
         Intent i = getIntent();
         int position = i.getIntExtra("position", 0);
 
-        adapter = new FullScreenImageAdapter(FullScreenViewActivity.this, utils.getFilePaths());
+
+        // TODO corregir para que pueda leer favoritos
+        adapter = new FullScreenImageAdapter(FullScreenViewActivity.this, DirContents.getIntance().getDataDir());
 
         viewPager.setAdapter(adapter);
 
