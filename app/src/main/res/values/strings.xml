@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Dilbert</string>
     <string name="action_settings">Preferencias</string>
-    <string name="gettingStrips">Obteniendo chistes ...</string>
     <string name="prefTitle">Preferencias</string>
     <string name="prefSummary">Preferencias de la aplicación</string>
     <string name="prefDatadirTitle">Directorio de datos</string>
@@ -10,10 +9,5 @@
     <string name="prefFavdirSummary">Directorio donde se guardan los chistes favoritos</string>
     <string name="prefOpenLastTitle">Abrir Ultimo</string>
     <string name="prefOpenLastSummary">Abre el último chiste visto al comenzar</string>
-    <string name="prefFirstdayTitle">Primer chiste</string>
-    <string name="prefFirstdaySummary">Fecha del primer chiste a bajar en formato AAAA-MM-DD</string>
-    <string name="firstRunTitle">Bienvenido!</string>
-    <string name="firstRunMessage">A continuación se bajarán los comics comenzando desde el día %1$s.\n\nPresione Ok para comenzar, o Cancelar para modificar las preferencias</string>
-    <string name="downloadComplete">Se han terminado de bajar los chistes</string>
 
 </resources>

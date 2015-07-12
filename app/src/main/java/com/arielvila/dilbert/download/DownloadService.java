@@ -1,6 +1,7 @@
 package com.arielvila.dilbert.download;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -10,21 +11,7 @@ import android.util.Log;
 import com.arielvila.dilbert.helper.AppConstant;
 import com.arielvila.dilbert.helper.DirContents;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-
-public class DownloadService extends IntentService {
+public class DownloadService extends IntentService implements IStripSavedInformer {
     public DownloadService() {
         super("Dilbert Download Service");
     }
@@ -36,18 +23,47 @@ public class DownloadService extends IntentService {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String dataDir = prefs.getString("datadir", "");
         DirContents.getIntance().refreshDataDir(dataDir);
-        String lastDataFile = DirContents.getIntance().getLastDataFile();
-        String lastDay = lastDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
-        String firstDay = prefs.getString("firstday", "");
-        if (lastDay.equals("") || firstDay.compareTo(lastDay) < 0) {
-            lastDay = firstDay;
+        switch (intent.getIntExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE)) {
+            case AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE :
+                String lastDataFile = DirContents.getIntance().getLastDataFile();
+                String lastDay = lastDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
+                Log.i(TAG, "lastDay: " + lastDay);
+                if (lastDay.equals("")) {
+                    DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, AppConstant.GROUP_QTTY_TO_DOWNLOAD, "");
+                } else {
+                    DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, lastDay, "");
+                }
+                AlarmReceiver.completeWakefulIntent(intent);
+                break;
+            case AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS :
+                String firstDataFile = DirContents.getIntance().getFirstDataFile();
+                String firstDay = firstDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
+                DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, AppConstant.GROUP_QTTY_TO_DOWNLOAD, firstDay);
+                break;
+            default:
+                break;
         }
-        Log.i(TAG, "lastDay: " + lastDay);
-        getAllStrips(dataDir, lastDay);
-        AlarmReceiver.completeWakefulIntent(intent);
     }
 
-    private final static String URL_HOST = "http://dilbert.com";
+    @Override
+    public void onFileSaved(String fileName) {
+        DirContents.getIntance().addDataFile(fileName);
+        Intent localIntent = new Intent(AppConstant.BROADCAST_SAVED_FILE_ACTION);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+    }
+
+    @Override
+    public void onDownloadGroupsEnd() {
+        Intent localIntent = new Intent(AppConstant.BROADCAST_DOWNLOAD_GROUP_END);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
+    }
+
+    /*
     private static ArrayList<String> links = new ArrayList<>();
     private static ArrayList<String> names = new ArrayList<>();
 
@@ -62,9 +78,14 @@ public class DownloadService extends IntentService {
         String stripHdr = "js_comic_container_";
         String lastStrip = stripHdr + lastDay;
         try {
+            registerCall(lastDay);
             while (!found) {
                 StringBuffer page;
-                page = getPage(pageReference);
+                page = getPage(AppConstant.DILBERT_URL + pageReference);
+//                FileWriter writer = new FileWriter(dataDir + "/page" + pageReference.replaceAll("[/&?\\*]", ""));
+//                writer.write(page.toString());
+//                writer.flush();
+//                writer.close();
                 Log.i(TAG, "page size: " + page.length());
                 int indexLastDay = page.indexOf(lastStrip);
                 found = (indexLastDay >= 0);
@@ -130,13 +151,18 @@ public class DownloadService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private StringBuffer getPage(String pageReference) throws IOException {
+    private void registerCall(String lastDay) throws IOException {
+        String androidId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+        getPage(AppConstant.REGISTER_CALL_URL + "?id=" + androidId + "&lastDay=" + lastDay);
+    }
+
+    private StringBuffer getPage(String url) throws IOException {
         StringBuffer page = new StringBuffer();
         HttpUriRequest request = null;
         HttpResponse resp = null;
         InputStream is = null;
         DefaultHttpClient client = new DefaultHttpClient();
-        request = new HttpGet(URL_HOST + pageReference);
+        request = new HttpGet(url);
         resp = client.execute(request);
         HttpEntity entity = resp.getEntity();
         is = entity.getContent();
@@ -182,8 +208,9 @@ public class DownloadService extends IntentService {
             out.close();
             prefNew.renameTo(new File(dataDir + "/" + graphName + extension));
             Log.i(TAG, "saved file: " + dataDir + "/" + graphName + extension);
-            Intent localIntent = new Intent(AppConstant.SAVED_FILE_ACTION);
+            Intent localIntent = new Intent(AppConstant.BROADCAST_SAVED_FILE_ACTION);
             LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
         }
     }
+    */
 }

@@ -4,23 +4,22 @@
         android:title="@string/prefTitle"
         android:summary="@string/prefSummary">
         <EditTextPreference
-            android:title="@string/prefFirstdayTitle"
-            android:summary="@string/prefFirstdaySummary"
-            android:dialogTitle="@string/prefFirstdayTitle"
-            android:key="firstday"
-            android:defaultValue="">
-        </EditTextPreference>
-        <EditTextPreference
             android:title="@string/prefDatadirTitle"
             android:summary="@string/prefDatadirSummary"
             android:dialogTitle="@string/prefDatadirTitle"
+            android:shouldDisableView="true"
             android:key="datadir"
+            android:enabled="false"
+            android:selectable="false"
             android:defaultValue="">
         </EditTextPreference>
         <EditTextPreference
             android:title="@string/prefFavdirTitle"
             android:summary="@string/prefFavdirSummary"
             android:dialogTitle="@string/prefFavdirTitle"
+            android:shouldDisableView="true"
+            android:enabled="false"
+            android:selectable="false"
             android:key="favdir"
             android:defaultValue="">
         </EditTextPreference>

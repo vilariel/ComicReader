@@ -1,21 +1,19 @@
 package com.arielvila.dilbert;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.arielvila.dilbert.adapter.GridAdapter;
 import com.arielvila.dilbert.download.AlarmReceiver;
@@ -35,71 +33,76 @@ public class DilbertMainActivity extends ActionBarActivity {
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.Adapter mAdapter;
-    private boolean mDownloadAndSetAlermAfterPreference = false;
     private DownloadStateReceiver mDownloadStateReceiver;
     AlarmReceiver mAlarm = new AlarmReceiver();
+    SwipeRefreshLayout mSwipeLayout;
+    private int mCountNewSavedFiles = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mSwipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                initiateRefresh();
+            }
+        });
+
         setPreferencesDefaultValues();
+
+        DirContents.getIntance().removeContent(PreferenceManager.getDefaultSharedPreferences(this).getString("datadir", ""));
         DirContents.getIntance().refreshDataDir(PreferenceManager.getDefaultSharedPreferences(this).getString("datadir", ""));
 
         mRecyclerView = (RecyclerView)findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new GridLayoutManager(this, 2);
+        mLayoutManager = new GridLayoutManager(this, 3);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         mAdapter = new GridAdapter(this, DirContents.getIntance().getDataDir());
         mRecyclerView.setAdapter(mAdapter);
-//        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("firstRun", true).apply();
 
         mDownloadStateReceiver = new DownloadStateReceiver();
         // The filter's action is BROADCAST_ACTION
-        IntentFilter savedFileIntentFilter = new IntentFilter(AppConstant.SAVED_FILE_ACTION);
+        IntentFilter savedFileIntentFilter = new IntentFilter(AppConstant.BROADCAST_SAVED_FILE_ACTION);
         LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, savedFileIntentFilter);
+
+        IntentFilter groupDownloadedIntentFilter = new IntentFilter(AppConstant.BROADCAST_DOWNLOAD_GROUP_END);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, groupDownloadedIntentFilter);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        controlFirstRun();
-        if (mDownloadAndSetAlermAfterPreference) {
-            downloadAndSetAlarm();
-        }
-    }
-
-    private void controlFirstRun() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         if (prefs.getBoolean("firstRun", true)) {
             prefs.edit().putBoolean("firstRun", false).apply();
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.firstRunTitle)
-                    .setMessage(String.format(getString(R.string.firstRunMessage), prefs.getString("firstday", "")))
-                    .setIcon(R.mipmap.icon)
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            DilbertMainActivity.this.downloadAndSetAlarm();
-                        }
-                    })
-                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            mDownloadAndSetAlermAfterPreference = true;
-                            Intent intent = new Intent(DilbertMainActivity.this, SettingsActivity.class);
-                            startActivity(intent);
-                        }
-                    })
-                    .show();
+            mAlarm.setAlarm(this);
+        }
+        if (DirContents.getIntance().getDataDir().size() == 0) {
+            downloadNow();
         }
     }
 
-    private void downloadAndSetAlarm() {
-        Toast.makeText(DilbertMainActivity.this, R.string.gettingStrips, Toast.LENGTH_SHORT).show();
+    private void downloadNow() {
+        // Workaround as mSwipeLayout.setRefreshing(true); doesn't work
+        mSwipeLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeLayout.setRefreshing(true);
+            }
+        });
         Intent downloadIntent = new Intent(this, DownloadService.class);
+        downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
         startService(downloadIntent);
-        mAlarm.setAlarm(this);
+    }
+
+    private void initiateRefresh() {
+        Intent downloadIntent = new Intent(this, DownloadService.class);
+        downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS);
+        startService(downloadIntent);
     }
 
     private void setPreferencesDefaultValues() {
@@ -110,14 +113,6 @@ public class DilbertMainActivity extends ActionBarActivity {
         }
         if (prefs.getString("favdir", "").equals("")) {
             prefs.edit().putString("favdir", android.os.Environment.getExternalStorageDirectory() + File.separator + AppConstant.DEFAULT_FAV_NAME).apply();
-        }
-        if (prefs.getString("firstday", "").equals("")) {
-            SimpleDateFormat dateFormatShort = new SimpleDateFormat("yyyy-MM-dd");
-            Date now = new Date();
-            Date newNow = new Date(now.getTime() - 432000000); // 5 days earlier
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTimeInMillis(newNow.getTime());
-            prefs.edit().putString("firstday", dateFormatShort.format(calendar.getTime())).apply();
         }
     }
 
@@ -154,13 +149,15 @@ public class DilbertMainActivity extends ActionBarActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
-                case AppConstant.SAVED_FILE_ACTION:
-                    DirContents.getIntance().refreshDataDir(
-                            PreferenceManager.getDefaultSharedPreferences(DilbertMainActivity.this).getString("datadir", ""));
-                    mAdapter.notifyDataSetChanged();
+                case AppConstant.BROADCAST_SAVED_FILE_ACTION:
+                    mCountNewSavedFiles++;
+                    if (mCountNewSavedFiles % 5 == 0) {
+                        mAdapter.notifyDataSetChanged();
+                    }
                     break;
-                case AppConstant.SAVED_ALL_FILES_ACTION:
-                    Toast.makeText(DilbertMainActivity.this, R.string.downloadComplete, Toast.LENGTH_SHORT).show();
+                case AppConstant.BROADCAST_DOWNLOAD_GROUP_END:
+                    mSwipeLayout.setRefreshing(false);
+                    mAdapter.notifyDataSetChanged();
                     break;
                 default:
                     break;
@@ -173,7 +170,6 @@ public class DilbertMainActivity extends ActionBarActivity {
      */
     @Override
     public void onDestroy() {
-
         // If the DownloadStateReceiver still exists, unregister it and set it to null
         if (mDownloadStateReceiver != null) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mDownloadStateReceiver);
@@ -182,6 +178,4 @@ public class DilbertMainActivity extends ActionBarActivity {
         // Must always call the super method at the end.
         super.onDestroy();
     }
-
-
 }

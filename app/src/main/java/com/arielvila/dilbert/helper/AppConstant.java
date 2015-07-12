@@ -16,11 +16,25 @@ public class AppConstant {
 
     public static final String DEFAULT_FAV_NAME = "DilbertFav";
 
+    public static final String DILBERT_URL = "http://dilbert.com";
+
+    public static final String REGISTER_CALL_URL = "http://remisesramallo.com.ar/utils/dilbert/registercall.php";
+
+    public static final String STRIP_DIR_URL = "http://remisesramallo.com.ar/utils/dilbert/strip/";
+
+    public static final int GROUP_QTTY_TO_DOWNLOAD = 15;
+
+    public static final String DOWNLOAD_EXTRA_ACTION = "DOWNLOAD_EXTRA_ACTION";
+
+    public static final int DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE = 1;
+
+    public static final int DOWNLOAD_ACTION_GET_PREVIOUS = 2;
+
     // supported file formats
     public static final List<String> FILE_EXTN = Arrays.asList("jpg", "jpeg", "png", "gif");
 
     // Defines a custom Intent action
-    public static final String SAVED_FILE_ACTION = "com.arielvila.dilbert.SAVED_FILE_ACTION";
+    public static final String BROADCAST_SAVED_FILE_ACTION = "com.arielvila.dilbert.BROADCAST_SAVED_FILE_ACTION";
 
-    public static final String SAVED_ALL_FILES_ACTION = "com.arielvila.dilbert.SAVED_ALL_FILES_ACTION";
+    public static final String BROADCAST_DOWNLOAD_GROUP_END = "com.arielvila.dilbert.BROADCAST_DOWNLOAD_GROUP_END";
 }

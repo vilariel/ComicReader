@@ -45,6 +45,39 @@ public class DirContents {
         return result;
     }
 
+    public String getFirstDataFile() {
+        String result = "";
+        if (dataDir.size() > 0) {
+            result = dataDir.get(0);
+        }
+        return result;
+    }
+
+    public void addDataFile(String fileName) {
+        if (!dataDir.contains(fileName)) {
+            dataDir.add(fileName);
+            Collections.sort(dataDir);
+        }
+    }
+
+    // Only for testing
+    public void removeContent(String directoryName) {
+        File directory = new File(directoryName);
+        if (directory.isDirectory()) {
+            File[] listFiles = directory.listFiles();
+            if (listFiles.length > 0) {
+                for (File listFile : listFiles) {
+                    String filePath = listFile.getAbsolutePath();
+                    if (IsSupportedFile(filePath)) {
+                        listFile.delete();
+                    }
+                }
+            }
+        } else {
+            Log.e("DirContents", "Error - Not a directory: " + directoryName);
+        }
+    }
+
     private void refreshListDir(ArrayList<String> listDir, String directoryName) {
         listDir.clear();
         File directory = new File(directoryName);

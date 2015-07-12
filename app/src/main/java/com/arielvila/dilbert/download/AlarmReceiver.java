@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
+import com.arielvila.dilbert.helper.AppConstant;
+
 import java.util.Calendar;
 
 /**
@@ -23,6 +25,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent service = new Intent(context, DownloadService.class);
+        service.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
         // Start the service, keeping the device awake while it is launching.
         startWakefulService(context, service);
     }
