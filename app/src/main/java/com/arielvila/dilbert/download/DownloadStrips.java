@@ -52,7 +52,11 @@ public class DownloadStrips {
                 currDay = getPreviousDay(currDay);
             }
         } catch (IOException e) {
+            informer.onDownloadGroupError(e.getMessage());
             Log.e(TAG, "Error Downloading Group: " + e.getMessage());
+        } catch (ParseException e) {
+            informer.onDownloadGroupError(e.getMessage());
+            Log.e(TAG, "Error Parsing Date: " + e.getMessage());
         }
         informer.onDownloadGroupsEnd();
     }
@@ -72,7 +76,11 @@ public class DownloadStrips {
                 currDay = getPreviousDay(currDay);
             }
         } catch (IOException e) {
+            informer.onDownloadGroupError(e.getMessage());
             Log.e(TAG, "Error Downloading Group: " + e.getMessage());
+        } catch (ParseException e) {
+            informer.onDownloadGroupError(e.getMessage());
+            Log.e(TAG, "Error Parsing Date: " + e.getMessage());
         }
         informer.onDownloadGroupsEnd();
     }
@@ -127,17 +135,13 @@ public class DownloadStrips {
         }
     }
 
-    private String getPreviousDay(String dayString) {
-        String result = "";
-        try {
-            Date day = mDateFormatShort.parse(dayString);
-            Date prev = new Date(day.getTime() - 86400000);
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTimeInMillis(prev.getTime());
-            result = mDateFormatShort.format(calendar.getTime());
-        } catch (ParseException e) {
-            Log.e(TAG, "Error Parsing Date: " + e.getMessage());
-        }
+    private String getPreviousDay(String dayString) throws ParseException {
+        String result;
+        Date day = mDateFormatShort.parse(dayString);
+        Date prev = new Date(day.getTime() - 86400000);
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(prev.getTime());
+        result = mDateFormatShort.format(calendar.getTime());
         return result;
     }
 

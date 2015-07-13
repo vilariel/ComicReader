@@ -14,6 +14,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.arielvila.dilbert.adapter.GridAdapter;
 import com.arielvila.dilbert.download.AlarmReceiver;
@@ -53,7 +54,7 @@ public class DilbertMainActivity extends ActionBarActivity {
 
         setPreferencesDefaultValues();
 
-        DirContents.getIntance().removeContent(PreferenceManager.getDefaultSharedPreferences(this).getString("datadir", ""));
+//        DirContents.getIntance().removeContent(PreferenceManager.getDefaultSharedPreferences(this).getString("datadir", ""));
         DirContents.getIntance().refreshDataDir(PreferenceManager.getDefaultSharedPreferences(this).getString("datadir", ""));
 
         mRecyclerView = (RecyclerView)findViewById(R.id.recycler_view);
@@ -66,11 +67,12 @@ public class DilbertMainActivity extends ActionBarActivity {
 
         mDownloadStateReceiver = new DownloadStateReceiver();
         // The filter's action is BROADCAST_ACTION
-        IntentFilter savedFileIntentFilter = new IntentFilter(AppConstant.BROADCAST_SAVED_FILE_ACTION);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, savedFileIntentFilter);
-
-        IntentFilter groupDownloadedIntentFilter = new IntentFilter(AppConstant.BROADCAST_DOWNLOAD_GROUP_END);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, groupDownloadedIntentFilter);
+        IntentFilter intentFilter = new IntentFilter(AppConstant.BROADCAST_SAVED_FILE_ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, intentFilter);
+        intentFilter = new IntentFilter(AppConstant.BROADCAST_DOWNLOAD_GROUP_END);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, intentFilter);
+        intentFilter = new IntentFilter(AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver, intentFilter);
     }
 
     @Override
@@ -158,6 +160,10 @@ public class DilbertMainActivity extends ActionBarActivity {
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_END:
                     mSwipeLayout.setRefreshing(false);
                     mAdapter.notifyDataSetChanged();
+                    break;
+                case AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR:
+                    String error = intent.getStringExtra(AppConstant.BROADCAST_ACTION);
+                    Toast.makeText(DilbertMainActivity.this, error, Toast.LENGTH_LONG).show();
                     break;
                 default:
                     break;

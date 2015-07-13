@@ -7,6 +7,8 @@ public interface IStripSavedInformer {
 
     void onDownloadGroupsEnd();
 
+    void onDownloadGroupError(String error);
+
     Context getContext();
 
 }

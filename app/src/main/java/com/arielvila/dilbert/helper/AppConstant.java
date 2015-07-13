@@ -18,6 +18,10 @@ public class AppConstant {
 
     public static final String DILBERT_URL = "http://dilbert.com";
 
+    public static final String STRIP_HOST_ORI_NAME = "remisesramallo.com.ar";
+
+    public static final String STRIP_HOST_DISP_NAME = "(Dilbert Host)";
+
     public static final String REGISTER_CALL_URL = "http://remisesramallo.com.ar/utils/dilbert/registercall.php";
 
     public static final String STRIP_DIR_URL = "http://remisesramallo.com.ar/utils/dilbert/strip/";
@@ -37,4 +41,8 @@ public class AppConstant {
     public static final String BROADCAST_SAVED_FILE_ACTION = "com.arielvila.dilbert.BROADCAST_SAVED_FILE_ACTION";
 
     public static final String BROADCAST_DOWNLOAD_GROUP_END = "com.arielvila.dilbert.BROADCAST_DOWNLOAD_GROUP_END";
+
+    public static final String BROADCAST_DOWNLOAD_GROUP_ERROR = "com.arielvila.dilbert.BROADCAST_DOWNLOAD_GROUP_ERROR";
+
+    public static final String BROADCAST_ACTION = "BROADCAST_ACTION";
 }

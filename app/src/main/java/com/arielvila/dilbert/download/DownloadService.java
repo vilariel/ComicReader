@@ -59,6 +59,14 @@ public class DownloadService extends IntentService implements IStripSavedInforme
     }
 
     @Override
+    public void onDownloadGroupError(String error) {
+        Intent localIntent = new Intent(AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR);
+        error = error.replace(AppConstant.STRIP_HOST_ORI_NAME, AppConstant.STRIP_HOST_DISP_NAME);
+        localIntent.putExtra(AppConstant.BROADCAST_ACTION, error);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+    }
+
+    @Override
     public Context getContext() {
         return this;
     }
