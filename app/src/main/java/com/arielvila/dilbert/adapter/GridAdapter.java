@@ -1,8 +1,7 @@
 package com.arielvila.dilbert.adapter;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,8 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.arielvila.dilbert.FullScreenViewActivity;
 import com.arielvila.dilbert.R;
+import com.arielvila.dilbert.StripGridFragment;
 
 import java.util.ArrayList;
 import android.graphics.Bitmap;
@@ -19,18 +18,30 @@ import android.graphics.BitmapFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
-public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
+public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
-    private Activity mActivity;
+    private StripGridFragment.StripGridCallbacks mCallback;
     private ArrayList<String> mFilePaths = new ArrayList<>();
+    private SparseBooleanArray mSelectedItems;
+    private int mChoiceMode;
 
-    public GridAdapter(Activity activity, ArrayList<String> filePaths) {
+    public static final int CHOICE_MODE_NONE = 0;
+    public static final int CHOICE_MODE_SINGLE = 1;
+    public static final int CHOICE_MODE_MULTIPLE = 2;
+
+    public GridAdapter(StripGridFragment.StripGridCallbacks callback, ArrayList<String> filePaths) {
         super();
 
-        mActivity = activity;
+        mCallback = callback;
         mFilePaths = filePaths;
+        mSelectedItems = new SparseBooleanArray();
+        mChoiceMode = CHOICE_MODE_NONE;
+    }
 
+    public void setChoiceMode(int choiceMode) {
+        mChoiceMode = choiceMode;
     }
 
     @Override
@@ -51,7 +62,6 @@ public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-
         return mFilePaths.size();
     }
 
@@ -75,6 +85,74 @@ public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         return result;
     }
 
+    public boolean isSelected(int position) {
+        return getSelectedItems().contains(position);
+    }
+
+    public void itemClick(int position) {
+        switch (mChoiceMode) {
+            case CHOICE_MODE_MULTIPLE:
+                toggleSelection(position);
+                break;
+            case CHOICE_MODE_SINGLE:
+                clearSelection();
+                mSelectedItems.put(position, true);
+                notifyItemChanged(position);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Toggle the selection status of the item at a given position
+     * @param position Position of the item to toggle the selection status for
+     */
+    public void toggleSelection(int position) {
+        if (mSelectedItems.get(position, false)) {
+            mSelectedItems.delete(position);
+        } else {
+            mSelectedItems.put(position, true);
+        }
+        notifyItemChanged(position);
+    }
+
+    public void setItemChecked(int position, boolean value) {
+        mSelectedItems.put(position, value);
+        notifyItemChanged(position);
+    }
+
+    /**
+     * Clear the selection status for all items
+     */
+    public void clearSelection() {
+        List<Integer> selection = getSelectedItems();
+        mSelectedItems.clear();
+        for (Integer i : selection) {
+            notifyItemChanged(i);
+        }
+    }
+
+    /**
+     * Count the selected items
+     * @return Selected items count
+     */
+    public int getSelectedItemCount() {
+        return mSelectedItems.size();
+    }
+
+    /**
+     * Indicates the list of selected items
+     * @return List of selected items ids
+     */
+    public List<Integer> getSelectedItems() {
+        List<Integer> items = new ArrayList<>(mSelectedItems.size());
+        for (int i = 0; i < mSelectedItems.size(); ++i) {
+            items.add(mSelectedItems.keyAt(i));
+        }
+        return items;
+    }
+
     class OnImageClickListener implements OnClickListener {
 
         int _postion;
@@ -86,15 +164,14 @@ public class GridAdapter  extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
         @Override
         public void onClick(View v) {
-            // on selecting grid view image
-            // launch full screen activity
-            Intent i = new Intent(mActivity, FullScreenViewActivity.class);
-            i.putExtra("position", _postion);
-            mActivity.startActivity(i);
-            mActivity.overridePendingTransition(R.anim.zoom_enter, R.anim.zoom_exit);
+            itemClick(_postion);
+            mCallback.onItemSelected(String.valueOf(_postion));
+//            Intent intent = new Intent(mActivity, FullScreenViewActivity.class);
+//            intent.putExtra("position", _postion);
+//            mActivity.startActivity(intent);
+//            mActivity.overridePendingTransition(R.anim.zoom_enter, R.anim.zoom_exit);
 
         }
-
     }
 
     /*

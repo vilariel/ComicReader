@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".DilbertMainActivity"
+            android:name=".StripGridActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,7 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FullScreenViewActivity"/>
+        <activity
+            android:name=".StripDetailActivity"
+            android:label="Dilbert Detail Label"
+            android:parentActivityName=".StripGridActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".StripGridActivity" />
+        </activity>
         <activity android:name=".SettingsActivity"/>
 
         <receiver android:name=".download.AlarmReceiver"/>

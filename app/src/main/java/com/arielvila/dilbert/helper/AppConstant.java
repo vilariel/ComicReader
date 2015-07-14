@@ -37,6 +37,8 @@ public class AppConstant {
     // supported file formats
     public static final List<String> FILE_EXTN = Arrays.asList("jpg", "jpeg", "png", "gif");
 
+    public static final long REFRESH_INTERVAL_MILLISECONDS = 3000;
+
     // Defines a custom Intent action
     public static final String BROADCAST_SAVED_FILE_ACTION = "com.arielvila.dilbert.BROADCAST_SAVED_FILE_ACTION";
 

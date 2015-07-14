@@ -3,15 +3,24 @@ package com.arielvila.dilbert.helper;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
 
 public class DirContents {
+    private static final String TAG = "DirContents";
     private static DirContents intance = null;
 
-    private ArrayList<String> dataDir = new ArrayList<>();
-    private ArrayList<String> favDir = new ArrayList<>();
+    private ArrayList<String> mDataDir = new ArrayList<>();
+    private ArrayList<String> mFavDir = new ArrayList<>();
+
+    private String mDataPath = null;
+    private String mFavPath = null;
 
     public static DirContents getIntance() {
         if (intance == null) {
@@ -21,42 +30,96 @@ public class DirContents {
     }
 
     public ArrayList<String> getDataDir() {
-        return dataDir;
+        return mDataDir;
     }
 
     public ArrayList<String> getFavDir() {
-        return favDir;
+        return mFavDir;
     }
 
     public void refreshDataDir(String directoryName) {
-        refreshListDir(dataDir, directoryName);
+        mDataPath = directoryName;
+        refreshListDir(mDataDir, directoryName);
     }
 
     public void refreshFavDir(String directoryName) {
-        refreshListDir(favDir, directoryName);
+        mFavPath = directoryName;
+        refreshListDir(mFavDir, directoryName);
+    }
+
+    public void refreshDataDir() {
+        refreshListDir(mDataDir, mDataPath);
+    }
+
+    public void refreshFavDir() {
+        refreshListDir(mFavDir, mFavPath);
     }
 
     public String getLastDataFile() {
         String result = "";
-        int last = dataDir.size();
+        int last = mDataDir.size();
         if (last > 0) {
-            result = dataDir.get(last - 1);
+            result = mDataDir.get(last - 1);
         }
         return result;
     }
 
     public String getFirstDataFile() {
         String result = "";
-        if (dataDir.size() > 0) {
-            result = dataDir.get(0);
+        if (mDataDir.size() > 0) {
+            result = mDataDir.get(0);
         }
         return result;
     }
 
     public void addDataFile(String fileName) {
-        if (!dataDir.contains(fileName)) {
-            dataDir.add(fileName);
-            Collections.sort(dataDir);
+        if (!mDataDir.contains(fileName)) {
+            mDataDir.add(fileName);
+            Collections.sort(mDataDir);
+        }
+    }
+
+    public boolean favDirContains(String stripName) {
+        return (indexContains(mFavDir, stripName) >= 0);
+    }
+
+    public void toggleFavorite(String stripName) {
+        int favInd = indexContains(mFavDir, stripName);
+        if (favInd >= 0) {
+            File favFile = new File(mFavDir.get(favInd));
+            favFile.delete();
+            mFavDir.remove(favInd);
+        } else {
+            int dataInd = indexContains(mDataDir, stripName);
+            if (dataInd >= 0) {
+                String fileName = mDataDir.get(dataInd).replaceAll(".*/", "");
+                copyFileToFav(fileName);
+                refreshFavDir();
+            }
+        }
+    }
+
+    private void copyFileToFav(String fileName) {
+        File directory = new File(mFavPath);
+        if (!directory.isDirectory()) {
+            directory.mkdirs();
+        }
+        File stripOri = new File(mDataPath + "/" + fileName);
+        File stripNew = new File(mFavPath + "/" + fileName);
+        InputStream in;
+        OutputStream out;
+        try {
+            in = new FileInputStream(stripOri);
+            out = new FileOutputStream(stripNew);
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            in.close();
+            out.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Error - Cannot copy file " + fileName + " to " + mFavPath);
         }
     }
 
@@ -74,7 +137,7 @@ public class DirContents {
                 }
             }
         } else {
-            Log.e("DirContents", "Error - Not a directory: " + directoryName);
+            Log.e(TAG, "Error - Not a directory: " + directoryName);
         }
     }
 
@@ -100,8 +163,17 @@ public class DirContents {
             }
             Collections.sort(listDir);
         } else {
-            Log.e("DirContents", "Error - Not a directory: " + directoryName);
+            Log.e(TAG, "Error - Not a directory: " + directoryName);
         }
+    }
+
+    private int indexContains(ArrayList<String> listDir, String stripName) {
+        for (int i = 0; i < listDir.size(); i++) {
+            if (listDir.get(i).contains(stripName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     // Check supported file extensions

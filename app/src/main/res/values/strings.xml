@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Dilbert</string>
-    <string name="action_settings">Preferencias</string>
     <string name="prefTitle">Preferencias</string>
     <string name="prefSummary">Preferencias de la aplicación</string>
     <string name="prefDatadirTitle">Directorio de datos</string>
