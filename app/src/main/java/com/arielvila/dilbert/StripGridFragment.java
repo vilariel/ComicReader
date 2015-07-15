@@ -5,13 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +77,8 @@ public class StripGridFragment extends Fragment {
     {
         View fragmentView = inflater.inflate(R.layout.fragment_strip_grid, container, false);
 
+        DisplayMetrics metrics = getActivity().getResources().getDisplayMetrics();
+
         mSwipeLayout = (SwipeRefreshLayout) fragmentView.findViewById(R.id.swipe_container);
         mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -82,16 +87,22 @@ public class StripGridFragment extends Fragment {
             }
         });
 
+        Resources res = getResources();
+        int columns = res.getInteger(R.integer.grid_columns);
+        int fragmentWidthDp = res.getInteger(R.integer.grid_width_dp);
+        int fragmentWidthPixels = (fragmentWidthDp > 0) ? Math.round(fragmentWidthDp * metrics.density) : metrics.widthPixels;
+
 //        DirContents.getIntance().removeContent(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("datadir", ""));
         DirContents.getIntance().refreshDataDir(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("datadir", ""));
         DirContents.getIntance().refreshFavDir(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("favdir", ""));
 
         mRecyclerView = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new GridLayoutManager(getActivity(), 3);
+        mLayoutManager = new GridLayoutManager(getActivity(), columns);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getDataDir());
+        mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getDataDir(), inflater,
+                container, fragmentWidthPixels, columns, metrics.density);
         mRecyclerView.setAdapter(mAdapter);
 
         mDownloadStateReceiver = new DownloadStateReceiver();
@@ -148,6 +159,7 @@ public class StripGridFragment extends Fragment {
         mLastTimeRefreshed = (new Date()).getTime();
         Intent downloadIntent = new Intent(getActivity(), DownloadService.class);
         downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
+        downloadIntent.putExtra(AppConstant.DOWNLOAD_QTTY, getResources().getInteger(R.integer.download_qtty));
         getActivity().startService(downloadIntent);
     }
 
@@ -155,6 +167,7 @@ public class StripGridFragment extends Fragment {
         mLastTimeRefreshed = (new Date()).getTime();
         Intent downloadIntent = new Intent(getActivity(), DownloadService.class);
         downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS);
+        downloadIntent.putExtra(AppConstant.DOWNLOAD_QTTY, getResources().getInteger(R.integer.download_qtty));
         getActivity().startService(downloadIntent);
     }
 

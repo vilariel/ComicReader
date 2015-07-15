@@ -5,23 +5,16 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.arielvila.dilbert.helper.FavoriteMenuItem;
 
 
-/**
- * An activity representing a single Strip detail screen. This
- * activity is only used on handset devices. On tablet-size devices,
- * item details are presented side-by-side with a list of items
- * in a {@link StripGridActivity}.
- * <p/>
- * This activity is mostly just a 'shell' activity containing nothing
- * more than a {@link StripDetailFragment}.
- */
-public class StripDetailActivity extends ActionBarActivity {
+public class StripDetailActivity extends ActionBarActivity implements StripDetailFragment.StripDetailCallbacks {
 
+    private static final String TAG = "StripDetailActivity";
     StripDetailFragment mStripDetailFragment = null;
 
     @Override
@@ -33,18 +26,7 @@ public class StripDetailActivity extends ActionBarActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setDisplayUseLogoEnabled(true);
 
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don't need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
         if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putString(StripDetailFragment.ARG_ITEM_ID,
                     getIntent().getStringExtra(StripDetailFragment.ARG_ITEM_ID));
@@ -75,5 +57,9 @@ public class StripDetailActivity extends ActionBarActivity {
             mStripDetailFragment.setFavoriteCurrentStrip();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void setStripDetailFragment(StripDetailFragment stripDetailFragment) {
+        this.mStripDetailFragment = stripDetailFragment;
     }
 }

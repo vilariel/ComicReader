@@ -1,12 +1,17 @@
 package com.arielvila.dilbert.adapter;
 
+import android.content.Context;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.arielvila.dilbert.R;
@@ -22,22 +27,42 @@ import java.util.List;
 
 public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
+    private static final String TAG = "GripAdapter";
     private StripGridFragment.StripGridCallbacks mCallback;
     private ArrayList<String> mFilePaths = new ArrayList<>();
     private SparseBooleanArray mSelectedItems;
     private int mChoiceMode;
+    private View mGridView = null;
+    LayoutInflater mInflater;
+    ViewGroup mContainer;
+    private int mCardWidth;
+    private int mLayoutHeight;
+    private int mImageHeight;
+    private int mTextHeight;
+    private int mTextSize;
 
     public static final int CHOICE_MODE_NONE = 0;
     public static final int CHOICE_MODE_SINGLE = 1;
     public static final int CHOICE_MODE_MULTIPLE = 2;
 
-    public GridAdapter(StripGridFragment.StripGridCallbacks callback, ArrayList<String> filePaths) {
+    public GridAdapter(StripGridFragment.StripGridCallbacks callback, ArrayList<String> filePaths,
+                       LayoutInflater inflater, ViewGroup container, int width, int columns, float density) {
         super();
-
+        mInflater = inflater;
+        mContainer = container;
         mCallback = callback;
         mFilePaths = filePaths;
         mSelectedItems = new SparseBooleanArray();
         mChoiceMode = CHOICE_MODE_NONE;
+        mCardWidth = Math.round(new Float(width / columns * 0.95));
+        mLayoutHeight = Math.round(new Float(width / columns * 1.0708));
+        mImageHeight = Math.round(new Float(width / columns * 0.8075));
+        mTextHeight = Math.round(new Float(width / columns * 0.2635));
+        // X = [1 100 2; 1 170 2; 1 480 4; 1 478 4; 1 160 1.5; 1 160 1.5]
+        // y = [7; 13; 18; 18; 15; 15]
+        // theta = inv(X.' * X) * X.' * y = [15.613776; 0.067740; -7.502920]
+        mTextSize = Math.round(new Float(15.613776 + width / columns * 0.067740 - density * 7.502920));
+        Log.i(TAG, "width: " + width + ", columns: " + columns + ", density: " + density + ", mCardWidth: " + mCardWidth + ", mLayoutHeight: " + mLayoutHeight + ", mImageHeight: " + mImageHeight + ", mTextHeight: " + mTextHeight + ", mTextSize: " + mTextSize);
     }
 
     public void setChoiceMode(int choiceMode) {
@@ -46,8 +71,25 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.grid_item, viewGroup, false);
-        return new ViewHolder(v);
+        View mGridView = mInflater.inflate(R.layout.grid_item, mContainer, false);
+        CardView cardView = (CardView) mGridView.findViewById(R.id.img_card);
+        ViewGroup.LayoutParams cardParams = cardView.getLayoutParams();
+        cardParams.width = mCardWidth;
+        cardView.setLayoutParams(cardParams);
+        RelativeLayout layoutView = (RelativeLayout) mGridView.findViewById(R.id.img_top_layout);
+        ViewGroup.LayoutParams layoutParams = layoutView.getLayoutParams();
+        layoutParams.height = mLayoutHeight;
+        layoutView.setLayoutParams(layoutParams);
+        ImageView imageView = (ImageView) mGridView.findViewById(R.id.img_thumbnail);
+        ViewGroup.LayoutParams imageParams = imageView.getLayoutParams();
+        imageParams.height = mImageHeight;
+        imageView.setLayoutParams(imageParams);
+        TextView textView = (TextView) mGridView.findViewById(R.id.img_text);
+        ViewGroup.LayoutParams textParams = textView.getLayoutParams();
+        textParams.height = mTextHeight;
+        textView.setLayoutParams(textParams);
+        textView.setTextSize(mTextSize);
+        return new ViewHolder(mGridView);
     }
 
     @Override

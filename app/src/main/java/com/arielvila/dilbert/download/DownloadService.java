@@ -23,13 +23,14 @@ public class DownloadService extends IntentService implements IStripSavedInforme
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String dataDir = prefs.getString("datadir", "");
         DirContents.getIntance().refreshDataDir(dataDir);
+        int qttyToDownload = intent.getIntExtra(AppConstant.DOWNLOAD_QTTY, AppConstant.DEFAULT_GROUP_QTTY_TO_DOWNLOAD);
         switch (intent.getIntExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE)) {
             case AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE :
                 String lastDataFile = DirContents.getIntance().getLastDataFile();
                 String lastDay = lastDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
                 Log.i(TAG, "lastDay: " + lastDay);
                 if (lastDay.equals("")) {
-                    DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, AppConstant.GROUP_QTTY_TO_DOWNLOAD, "");
+                    DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, qttyToDownload, "");
                 } else {
                     DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, lastDay, "");
                 }
@@ -38,7 +39,7 @@ public class DownloadService extends IntentService implements IStripSavedInforme
             case AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS :
                 String firstDataFile = DirContents.getIntance().getFirstDataFile();
                 String firstDay = firstDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
-                DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, AppConstant.GROUP_QTTY_TO_DOWNLOAD, firstDay);
+                DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, qttyToDownload, firstDay);
                 break;
             default:
                 break;

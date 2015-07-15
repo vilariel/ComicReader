@@ -8,5 +8,7 @@
     <string name="prefFavdirSummary">Directorio donde se guardan los chistes favoritos</string>
     <string name="prefOpenLastTitle">Abrir Ultimo</string>
     <string name="prefOpenLastSummary">Abre el último chiste visto al comenzar</string>
-
+    <string name="drawer_open">Abrir navigation drawer</string>
+    <string name="drawer_close">Cerrar navigation drawer</string>
+    <string name="favTitle">Favoritos</string>
 </resources>

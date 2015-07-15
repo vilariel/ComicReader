@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,8 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
+
+    private static final String TAG = "StripDetailFragment";
     public static final String ARG_ITEM_ID = "item_id";
 
     private int mInitialPosition;
@@ -46,14 +49,18 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            mInitialPosition = Integer.valueOf(getArguments().getString(ARG_ITEM_ID));
+        if (savedInstanceState == null) {
+            if (getArguments().containsKey(ARG_ITEM_ID)) {
+                mInitialPosition = Integer.valueOf(getArguments().getString(ARG_ITEM_ID));
+            }
         }
+        // Necessary when attached to StripGridActivity and/or when recreated
+        ((StripDetailCallbacks) getActivity()).setStripDetailFragment(this);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(TAG, "onCreateView called. Initial position: " + mInitialPosition);
         View fragmentView = inflater.inflate(R.layout.fragment_strip_detail, container, false);
 
         ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.pager);
@@ -94,5 +101,9 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
     public void setFavoriteCurrentStrip() {
         DirContents.getIntance().toggleFavorite(mCurrentStripName);
         updateFavoriteIcon();
+    }
+
+    public interface StripDetailCallbacks {
+        void setStripDetailFragment(StripDetailFragment stripDetailFragment);
     }
 }

@@ -2,47 +2,63 @@ package com.arielvila.dilbert;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
+import com.arielvila.dilbert.adapter.DrawerListAdapter;
 import com.arielvila.dilbert.helper.AppConstant;
+import com.arielvila.dilbert.helper.DrawerItem;
+import com.arielvila.dilbert.helper.FavoriteMenuItem;
 
 import java.io.File;
+import java.util.ArrayList;
 
 
-/**
- * An activity representing a list of Strips. This activity
- * has different presentations for handset and tablet-size devices. On
- * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link StripDetailActivity} representing
- * item details. On tablets, the activity presents the list of items and
- * item details side-by-side using two vertical panes.
- * <p/>
- * The activity makes heavy use of fragments. The list of items is a
- * {@link StripGridFragment} and the item details
- * (if present) is a {@link StripDetailFragment}.
- * <p/>
- * This activity also implements the required
- * {@link StripGridFragment.StripGridCallbacks} interface
- * to listen for item selections.
- */
-public class StripGridActivity extends ActionBarActivity implements StripGridFragment.StripGridCallbacks {
+public class StripGridActivity extends ActionBarActivity implements StripGridFragment.StripGridCallbacks,
+        StripDetailFragment.StripDetailCallbacks {
 
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
+    // Whether or not the activity is in two-pane mode, i.e. running on a tablet
     private boolean mTwoPane;
+    private ActionBarDrawerToggle mDrawerToggle;
+    StripDetailFragment mStripDetailFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_strip_grid);
-
+        setTitle(getString(R.string.app_name) + "               "); // Workaround for the title truncation issue
         setPreferencesDefaultValues();
+
+        DrawerLayout drawerLayout;
+        ListView drawerList;
+
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerList = (ListView) findViewById(R.id.left_drawer);
+
+        drawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        ArrayList<DrawerItem> items = new ArrayList<>();
+        items.add(new DrawerItem(R.string.favTitle, R.drawable.ic_star_white_24dp));
+        items.add(new DrawerItem(R.string.prefTitle, R.drawable.ic_settings_white_24dp));
+
+        drawerList.setAdapter(new DrawerListAdapter(this, items));
+        drawerList.setOnItemClickListener(new DrawerItemClickListener());
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close);
+        drawerLayout.setDrawerListener(mDrawerToggle);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        mDrawerToggle.syncState();
 
         if (findViewById(R.id.strip_detail_container) != null) {
             // The detail container view will be present only in the
@@ -65,6 +81,9 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        if (mTwoPane) {
+            FavoriteMenuItem.getInstance().setMenuItem(menu.findItem(R.id.action_favourite));
+        }
         return true;
     }
 
@@ -75,14 +94,18 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
-            return true;
+        if (id == R.id.action_favourite) {
+            mStripDetailFragment.setFavoriteCurrentStrip();
         }
+//        //noinspection SimplifiableIfStatement
 
+        mDrawerToggle.onOptionsItemSelected(item);
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConfigurationChanged (Configuration newConfig) {
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     private void setPreferencesDefaultValues() {
@@ -95,7 +118,6 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
             prefs.edit().putString("favdir", android.os.Environment.getExternalStorageDirectory() + File.separator + AppConstant.DEFAULT_FAV_NAME).apply();
         }
     }
-
 
     /**
      * Callback method from {@link StripGridFragment.StripGridCallbacks}
@@ -122,5 +144,23 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
             detailIntent.putExtra(StripDetailFragment.ARG_ITEM_ID, id);
             startActivity(detailIntent);
         }
+    }
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            selectDrawerItem(position);
+        }
+    }
+
+    private void selectDrawerItem(int position) {
+        if (position == 1) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        }
+    }
+
+    public void setStripDetailFragment(StripDetailFragment stripDetailFragment) {
+        this.mStripDetailFragment = stripDetailFragment;
     }
 }
