@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="grid_columns">5</integer>
+    <integer name="grid_width_dp">0</integer>
+    <integer name="download_qtty">15</integer>
+</resources>
