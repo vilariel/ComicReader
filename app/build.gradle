@@ -5,7 +5,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.arielvila.dilbert"
+        applicationId "com.arielvila.comicreader"
         minSdkVersion 16
         targetSdkVersion 22
         versionCode 1
@@ -13,10 +13,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file("dilberttogo-release.keystore")
-            storePassword "dilberttogo1"
-            keyAlias "dilberttogo"
-            keyPassword "dilberttogo1"
+            storeFile file("comicreader-release.keystore")
+            storePassword "comicreader1"
+            keyAlias "comicreader"
+            keyPassword "comicreader1"
         }
     }
     buildTypes {

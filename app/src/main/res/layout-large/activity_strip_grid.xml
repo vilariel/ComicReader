@@ -18,7 +18,7 @@
         -->
 
         <fragment android:id="@+id/strip_list"
-            android:name="com.arielvila.dilbert.StripGridFragment"
+            android:name="com.arielvila.comicreader.StripGridFragment"
             android:layout_width="160dp" android:layout_height="match_parent"
             tools:layout="@android:layout/list_content"/>
 

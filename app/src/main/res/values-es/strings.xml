@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Comics Reader</string>
+    <string name="prefTitle">Preferencias</string>
+    <string name="prefSummary">Preferencias de la aplicación</string>
+    <string name="prefDatadirTitle">Directorio de datos</string>
+    <string name="prefDatadirSummary">Directorio donde se bajan los chistes</string>
+    <string name="prefFavdirTitle">Directorio de favoritos</string>
+    <string name="prefFavdirSummary">Directorio donde se guardan los chistes favoritos</string>
+    <string name="prefOpenLastTitle">Abrir Ultimo</string>
+    <string name="prefOpenLastSummary">Abre el último chiste visto al comenzar</string>
+    <string name="drawer_open">Abrir navigation drawer</string>
+    <string name="drawer_close">Cerrar navigation drawer</string>
+    <string name="favTitle">Favoritos</string>
+</resources>

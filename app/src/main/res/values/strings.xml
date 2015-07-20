@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Dilbert To Go</string>
+    <string name="app_name">Comics Reader</string>
     <string name="prefTitle">Settings</string>
     <string name="prefSummary">Application Settings</string>
     <string name="prefDatadirTitle">Data folder</string>

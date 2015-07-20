@@ -1,4 +1,4 @@
-<com.arielvila.dilbert.helper.ExtendedViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+<com.arielvila.comicreader.helper.ExtendedViewPager xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/pager"
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
