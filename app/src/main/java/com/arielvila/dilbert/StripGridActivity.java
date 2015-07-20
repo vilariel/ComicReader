@@ -1,5 +1,6 @@
 package com.arielvila.dilbert;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -144,6 +145,10 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
             detailIntent.putExtra(StripDetailFragment.ARG_ITEM_ID, id);
             startActivity(detailIntent);
         }
+    }
+
+    public Context getContext() {
+        return this;
     }
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {

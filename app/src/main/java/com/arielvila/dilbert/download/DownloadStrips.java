@@ -1,5 +1,6 @@
 package com.arielvila.dilbert.download;
 
+import android.content.res.Resources;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -7,6 +8,7 @@ import com.arielvila.dilbert.helper.AppConstant;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -54,6 +56,9 @@ public class DownloadStrips {
         } catch (IOException e) {
             informer.onDownloadGroupError(e.getMessage());
             Log.e(TAG, "Error Downloading Group: " + e.getMessage());
+        } catch (Resources.NotFoundException e) {
+            informer.onDownloadGroupError(e.getMessage());
+            Log.e(TAG, "Error Downloading Group: " + e.getMessage());
         } catch (ParseException e) {
             informer.onDownloadGroupError(e.getMessage());
             Log.e(TAG, "Error Parsing Date: " + e.getMessage());
@@ -76,6 +81,9 @@ public class DownloadStrips {
                 currDay = getPreviousDay(currDay);
             }
         } catch (IOException e) {
+            informer.onDownloadGroupError(e.getMessage());
+            Log.e(TAG, "Error Downloading Group: " + e.getMessage());
+        } catch (Resources.NotFoundException e) {
             informer.onDownloadGroupError(e.getMessage());
             Log.e(TAG, "Error Downloading Group: " + e.getMessage());
         } catch (ParseException e) {
@@ -106,13 +114,17 @@ public class DownloadStrips {
         return page;
     }
 
-    private void saveImage(String dataDir, String graphName, IStripSavedInformer informer) throws IOException {
+    private void saveImage(String dataDir, String graphName, IStripSavedInformer informer) throws IOException, Resources.NotFoundException {
         HttpUriRequest request;
         HttpResponse resp;
         InputStream is;
         DefaultHttpClient client = new DefaultHttpClient();
         request = new HttpGet(AppConstant.STRIP_DIR_URL + graphName + ".gif");
         resp = client.execute(request);
+        int code = resp.getStatusLine().getStatusCode();
+        if (code != HttpStatus.SC_OK) {
+            throw new Resources.NotFoundException("Not found " + graphName);
+        }
         HttpEntity entity = resp.getEntity();
         is = entity.getContent();
         File dir = new File(dataDir);
@@ -120,18 +132,23 @@ public class DownloadStrips {
             dir.mkdirs();
         }
         File gifFile = new File(dataDir + "/" + graphName + ".gif");
-        if (!gifFile.exists()) {
-            File prefNew = new File(dataDir + "/" + graphName + ".gif");
-            OutputStream out = new FileOutputStream(prefNew);
-            byte[] contents = new byte[1024];
-            int bytesRead;
-            BufferedInputStream bis = new BufferedInputStream(is);
-            while ((bytesRead = bis.read(contents)) != -1) {
-                out.write(contents, 0, bytesRead);
+        try {
+            if (!gifFile.exists()) {
+                File prefNew = new File(dataDir + "/" + graphName + ".gif");
+                OutputStream out = new FileOutputStream(prefNew);
+                byte[] contents = new byte[1024];
+                int bytesRead;
+                BufferedInputStream bis = new BufferedInputStream(is);
+                while ((bytesRead = bis.read(contents)) != -1) {
+                    out.write(contents, 0, bytesRead);
+                }
+                out.close();
+                informer.onFileSaved(dataDir + "/" + graphName + ".gif");
+                Log.i(TAG, "saved file: " + dataDir + "/" + graphName);
             }
-            out.close();
-            informer.onFileSaved(dataDir + "/" + graphName + ".gif");
-            Log.i(TAG, "saved file: " + dataDir + "/" + graphName);
+        } catch (IOException e) {
+            gifFile.delete();
+            throw e;
         }
     }
 

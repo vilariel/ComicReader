@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -21,12 +20,12 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.Toast;
 
-
 import com.arielvila.dilbert.adapter.GridAdapter;
 import com.arielvila.dilbert.download.AlarmReceiver;
 import com.arielvila.dilbert.download.DownloadService;
 import com.arielvila.dilbert.helper.AppConstant;
 import com.arielvila.dilbert.helper.DirContents;
+import com.arielvila.dilbert.helper.RetainMemoryCacheFragment;
 
 import java.util.Date;
 
@@ -77,6 +76,8 @@ public class StripGridFragment extends Fragment {
     {
         View fragmentView = inflater.inflate(R.layout.fragment_strip_grid, container, false);
 
+        RetainMemoryCacheFragment retainFragment = RetainMemoryCacheFragment.findOrCreateRetainFragment(getFragmentManager());
+
         DisplayMetrics metrics = getActivity().getResources().getDisplayMetrics();
 
         mSwipeLayout = (SwipeRefreshLayout) fragmentView.findViewById(R.id.swipe_container);
@@ -102,7 +103,8 @@ public class StripGridFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getDataDir(), inflater,
-                container, fragmentWidthPixels, columns, metrics.density);
+                container, fragmentWidthPixels, columns, metrics.density, retainFragment.getRetainedCache());
+        mAdapter.setLoadingImage(R.drawable.empty_photo);
         mRecyclerView.setAdapter(mAdapter);
 
         mDownloadStateReceiver = new DownloadStateReceiver();
@@ -239,6 +241,9 @@ public class StripGridFragment extends Fragment {
      * selections.
      */
     public interface StripGridCallbacks {
+
+        Context getContext();
+
         /**
          * Callback for when an item has been selected.
          */
