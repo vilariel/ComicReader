@@ -3,7 +3,6 @@ package com.arielvila.dilbert;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +13,7 @@ import com.arielvila.dilbert.adapter.IStripImageFragment;
 import com.arielvila.dilbert.adapter.StripImageAdapter;
 import com.arielvila.dilbert.animation.DepthPageTransformer;
 import com.arielvila.dilbert.helper.DirContents;
+import com.arielvila.dilbert.helper.ExtendedViewPager;
 import com.arielvila.dilbert.helper.FavoriteMenuItem;
 
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         Log.i(TAG, "onCreateView called. Initial position: " + mInitialPosition);
         View fragmentView = inflater.inflate(R.layout.fragment_strip_detail, container, false);
 
-        ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.pager);
+        ExtendedViewPager viewPager = (ExtendedViewPager) fragmentView.findViewById(R.id.pager);
         viewPager.setPageTransformer(true, new DepthPageTransformer());
 
         mDataDir = DirContents.getIntance().getDataDir();
