@@ -2,4 +2,5 @@
 <resources>
     <color name="grid_item_unselected">#ff444444</color>
     <color name="grid_item_selected">#ff898989</color>
+    <color name="drawer_background_color">#ff686868</color>
 </resources>

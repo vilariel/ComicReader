@@ -48,8 +48,8 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
 
         drawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         ArrayList<DrawerItem> items = new ArrayList<>();
-        items.add(new DrawerItem(R.string.favTitle, R.drawable.ic_star_white_24dp));
-        items.add(new DrawerItem(R.string.prefTitle, R.drawable.ic_settings_white_24dp));
+        items.add(new DrawerItem(R.string.favTitle, R.drawable.ic_star_white_18dp));
+        items.add(new DrawerItem(R.string.prefTitle, R.drawable.ic_settings_white_18dp));
 
         drawerList.setAdapter(new DrawerListAdapter(this, items));
         drawerList.setOnItemClickListener(new DrawerItemClickListener());
