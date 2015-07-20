@@ -332,7 +332,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         @Override
         protected Bitmap doInBackground(String... params) {
             mData = params[0];
-            final Bitmap bitmap = decodeFile(mData, 100, 100);
+            final Bitmap bitmap = decodeFile(mData, 400, 100);
             if (bitmap != null) {
                 addBitmapToMemoryCache(params[0], bitmap);
             }
