@@ -16,8 +16,6 @@ import android.widget.TextView;
 
 import com.arielvila.dilbert.R;
 import com.arielvila.dilbert.StripGridFragment;
-import com.arielvila.dilbert.imgutil.ImageFetcherFile;
-import com.arielvila.dilbert.imgutil.RecyclingImageView;
 
 import java.util.ArrayList;
 import android.graphics.Bitmap;
@@ -42,24 +40,20 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     private int mImageHeight;
     private int mTextHeight;
     private int mTextSize;
-    private ImageFetcherFile mImageFetcher;
-    private long mOnBindCalled = 0;
 
     public static final int CHOICE_MODE_NONE = 0;
     public static final int CHOICE_MODE_SINGLE = 1;
     public static final int CHOICE_MODE_MULTIPLE = 2;
 
-    public GridAdapter(StripGridFragment.StripGridCallbacks callback, ArrayList<String> filePaths, LayoutInflater inflater,
-                       ViewGroup container, int width, int columns, float density, ImageFetcherFile imageFetcher) {
+    public GridAdapter(StripGridFragment.StripGridCallbacks callback, ArrayList<String> filePaths,
+                       LayoutInflater inflater, ViewGroup container, int width, int columns, float density) {
         super();
-        super.setHasStableIds(true);
         mInflater = inflater;
         mContainer = container;
         mCallback = callback;
         mFilePaths = filePaths;
         mSelectedItems = new SparseBooleanArray();
         mChoiceMode = CHOICE_MODE_NONE;
-        mImageFetcher = imageFetcher;
         mCardWidth = Math.round(new Float(width / columns * 0.95));
         mLayoutHeight = Math.round(new Float(width / columns * 1.0708));
         mImageHeight = Math.round(new Float(width / columns * 0.8075));
@@ -86,7 +80,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         ViewGroup.LayoutParams layoutParams = layoutView.getLayoutParams();
         layoutParams.height = mLayoutHeight;
         layoutView.setLayoutParams(layoutParams);
-        RecyclingImageView imageView = (RecyclingImageView) mGridView.findViewById(R.id.img_thumbnail);
+        ImageView imageView = (ImageView) mGridView.findViewById(R.id.img_thumbnail);
         ViewGroup.LayoutParams imageParams = imageView.getLayoutParams();
         imageParams.height = mImageHeight;
         imageView.setLayoutParams(imageParams);
@@ -100,26 +94,17 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int i) {
-        mOnBindCalled++;
         viewHolder.imgText.setText(getName(mFilePaths.get(i)));
         // TODO resolve width and height (if necessary)
-
+        Bitmap image = decodeFile(mFilePaths.get(i), 80, 80);
         viewHolder.imgThumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        // Load the image asynchronously into the ImageView, this also takes care of
-        // setting a placeholder image while the background thread runs
-        mImageFetcher.loadImage(mFilePaths.get(i), viewHolder.imgThumbnail);
+        viewHolder.imgThumbnail.setImageBitmap(image);
         viewHolder.viewItem.setOnClickListener(new OnImageClickListener(i));
-        Log.i(TAG, "onBindViewHolder " + mFilePaths.get(i));
     }
 
     @Override
     public int getItemCount() {
         return mFilePaths.size();
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return getNameAsId(mFilePaths.get(position));
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -138,15 +123,8 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     private String getName(String filePath) {
         String result;
         int len = filePath.length();
-        result = filePath.substring(len - 6, len - 4) + "." + mOnBindCalled;
+        result = filePath.substring(len - 14, len - 4);
         return result;
-    }
-
-    private Long getNameAsId(String filePath) {
-        int len = filePath.length();
-        String name = filePath.substring(len - 14, len - 10) + filePath.substring(len - 9, len - 7) +
-                filePath.substring(len - 6, len - 4);
-        return Long.valueOf(name);
     }
 
     public boolean isSelected(int position) {
@@ -236,5 +214,31 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 //            mActivity.overridePendingTransition(R.anim.zoom_enter, R.anim.zoom_exit);
 
         }
+    }
+
+    /*
+     * Resizing image size
+     */
+    public static Bitmap decodeFile(String filePath, int width, int height) {
+        try {
+
+            File f = new File(filePath);
+
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(new FileInputStream(f), null, o);
+
+            int scale = 1;
+            while (o.outWidth / scale / 2 >= width
+                    && o.outHeight / scale / 2 >= height)
+                scale *= 2;
+
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = scale;
+            return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

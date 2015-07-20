@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -26,9 +27,6 @@ import com.arielvila.dilbert.download.AlarmReceiver;
 import com.arielvila.dilbert.download.DownloadService;
 import com.arielvila.dilbert.helper.AppConstant;
 import com.arielvila.dilbert.helper.DirContents;
-import com.arielvila.dilbert.imgutil.ImageCache;
-import com.arielvila.dilbert.imgutil.ImageFetcherFile;
-import com.arielvila.dilbert.imgutil.Utils;
 
 import java.util.Date;
 
@@ -43,7 +41,6 @@ import java.util.Date;
  */
 public class StripGridFragment extends Fragment {
 
-    private static final String IMAGE_CACHE_DIR = "thumbs";
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private GridAdapter mAdapter;
@@ -51,7 +48,6 @@ public class StripGridFragment extends Fragment {
     private AlarmReceiver mAlarm = new AlarmReceiver();
     private SwipeRefreshLayout mSwipeLayout;
     private long mLastTimeRefreshed;
-    private ImageFetcherFile mImageFetcher;
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -105,34 +101,9 @@ public class StripGridFragment extends Fragment {
         mLayoutManager = new GridLayoutManager(getActivity(), columns);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        ImageCache.ImageCacheParams cacheParams = new ImageCache.ImageCacheParams(getActivity(), IMAGE_CACHE_DIR);
-
-        cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
-
-        // The ImageFetcher takes care of loading images into our ImageView children asynchronously
-        mImageFetcher = new ImageFetcherFile(getActivity(), Math.round(new Float(fragmentWidthPixels / columns * 0.95)));
-        mImageFetcher.setLoadingImage(R.drawable.empty_photo);
-        mImageFetcher.addImageCache(getActivity().getSupportFragmentManager(), cacheParams);
-
         mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getDataDir(), inflater,
-                container, fragmentWidthPixels, columns, metrics.density, mImageFetcher);
+                container, fragmentWidthPixels, columns, metrics.density);
         mRecyclerView.setAdapter(mAdapter);
-
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                // Pause fetcher to ensure smoother scrolling when flinging
-                if (newState == RecyclerView.SCROLL_STATE_SETTLING) {
-                    // Before Honeycomb pause image loading on scroll to help with performance
-                    if (!Utils.hasHoneycomb()) {
-                        mImageFetcher.setPauseWork(true);
-                    }
-                } else {
-                    mImageFetcher.setPauseWork(false);
-                }
-            }
-        });
 
         mDownloadStateReceiver = new DownloadStateReceiver();
         // The filter's action is BROADCAST_ACTION
