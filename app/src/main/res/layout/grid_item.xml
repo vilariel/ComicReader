@@ -35,7 +35,7 @@
                 android:paddingRight="2dp"
                 android:layout_gravity="bottom"
                 android:gravity="center_vertical"
-                android:background="#ff444444"
+                android:background="@color/grid_item_unselected"
                 android:textColor="#fff"
                 android:textSize="15dp"
                 android:text="Test"

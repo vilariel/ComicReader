@@ -151,6 +151,7 @@ public class StripGridFragment extends Fragment {
     }
 
     private void downloadNow() {
+        mAdapter.setAllowsClick(false);
         // Workaround as mSwipeLayout.setRefreshing(true); doesn't work
         mSwipeLayout.post(new Runnable() {
             @Override
@@ -166,6 +167,7 @@ public class StripGridFragment extends Fragment {
     }
 
     private void initiateRefresh() {
+        mAdapter.setAllowsClick(false);
         mLastTimeRefreshed = (new Date()).getTime();
         Intent downloadIntent = new Intent(getActivity(), DownloadService.class);
         downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS);
@@ -210,6 +212,7 @@ public class StripGridFragment extends Fragment {
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_END:
                     mSwipeLayout.setRefreshing(false);
                     mAdapter.notifyDataSetChanged();
+                    mAdapter.setAllowsClick(true);
                     break;
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR:
                     String error = intent.getStringExtra(AppConstant.BROADCAST_ACTION);

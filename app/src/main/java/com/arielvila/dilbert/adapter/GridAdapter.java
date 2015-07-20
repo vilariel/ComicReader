@@ -48,6 +48,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     private int mTextSize;
     private Bitmap mLoadingBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
+    private boolean mAllowsClick;
 
     public static final int CHOICE_MODE_NONE = 0;
     public static final int CHOICE_MODE_SINGLE = 1;
@@ -64,6 +65,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         mResources = callback.getContext().getResources();
         mSelectedItems = new SparseBooleanArray();
         mChoiceMode = CHOICE_MODE_NONE;
+        mAllowsClick = true;
         mMemoryCache = memoryCache;
         mCardWidth = Math.round(new Float(width / columns * 0.95));
         mLayoutHeight = Math.round(new Float(width / columns * 1.0708));
@@ -108,6 +110,11 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int i) {
         viewHolder.imgText.setText(getName(mFilePaths.get(i)));
+        if (isSelected(i)) {
+            viewHolder.imgText.setBackgroundColor(mResources.getColor(R.color.grid_item_selected));
+        } else {
+            viewHolder.imgText.setBackgroundColor(mResources.getColor(R.color.grid_item_unselected));
+        }
         // TODO resolve width and height (if necessary)
         loadBitmap(mFilePaths.get(i), viewHolder.imgThumbnail);
         viewHolder.imgThumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -226,6 +233,10 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         mLoadingBitmap = BitmapFactory.decodeResource(mResources, resId);
     }
 
+    public void setAllowsClick(boolean allowsClick) {
+        this.mAllowsClick = allowsClick;
+    }
+
     public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
         if (getBitmapFromMemCache(key) == null) {
             mMemoryCache.put(key, bitmap);
@@ -238,22 +249,19 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
 
     class OnImageClickListener implements OnClickListener {
 
-        int _postion;
+        int mPostion;
 
         // constructor
         public OnImageClickListener(int position) {
-            this._postion = position;
+            this.mPostion = position;
         }
 
         @Override
         public void onClick(View v) {
-            itemClick(_postion);
-            mCallback.onItemSelected(String.valueOf(_postion));
-//            Intent intent = new Intent(mActivity, FullScreenViewActivity.class);
-//            intent.putExtra("position", _postion);
-//            mActivity.startActivity(intent);
-//            mActivity.overridePendingTransition(R.anim.zoom_enter, R.anim.zoom_exit);
-
+            if (mAllowsClick) {
+                itemClick(mPostion);
+                mCallback.onItemSelected(String.valueOf(mPostion));
+            }
         }
     }
 
