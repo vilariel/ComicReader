@@ -3,4 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".StripGridActivity">
     <item android:id="@+id/action_favourite" android:title="" android:icon="@drawable/ic_star_invisible_24dp"
         android:orderInCategory="100" app:showAsAction="always"/>
+    <item android:id="@+id/action_share" android:title=""  android:icon="@drawable/ic_star_invisible_24dp"
+        android:orderInCategory="101" app:showAsAction="always"/>
 </menu>

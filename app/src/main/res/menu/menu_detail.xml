@@ -1,6 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".FullScreenViewActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_favourite" android:title="" android:icon="@drawable/ic_star_invisible_24dp"
         android:orderInCategory="100" app:showAsAction="always"/>
+    <item android:id="@+id/action_share" android:title=""  android:icon="@drawable/ic_share_white_24dp"
+        android:orderInCategory="101" app:showAsAction="always"/>
 </menu>

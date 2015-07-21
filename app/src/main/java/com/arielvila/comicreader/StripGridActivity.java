@@ -19,7 +19,7 @@ import android.widget.ListView;
 import com.arielvila.comicreader.adapter.DrawerListAdapter;
 import com.arielvila.comicreader.helper.AppConstant;
 import com.arielvila.comicreader.helper.DrawerItem;
-import com.arielvila.comicreader.helper.FavoriteMenuItem;
+import com.arielvila.comicreader.helper.StripMenu;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -83,23 +83,20 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         if (mTwoPane) {
-            FavoriteMenuItem.getInstance().setMenuItem(menu.findItem(R.id.action_favourite));
+            StripMenu.getInstance().setFavMenuItem(menu.findItem(R.id.action_favourite));
+            StripMenu.getInstance().setShareMenuItem(menu.findItem(R.id.action_share));
         }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        if (id == R.id.action_favourite) {
+        if (id == R.id.action_favourite && mStripDetailFragment != null) {
             mStripDetailFragment.setFavoriteCurrentStrip();
+        } else if (id == R.id.action_share && mStripDetailFragment != null) {
+            mStripDetailFragment.shareCurrentStrip();
         }
-//        //noinspection SimplifiableIfStatement
-
         mDrawerToggle.onOptionsItemSelected(item);
         return super.onOptionsItemSelected(item);
     }

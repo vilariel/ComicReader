@@ -1,6 +1,8 @@
 package com.arielvila.comicreader;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -14,8 +16,9 @@ import com.arielvila.comicreader.adapter.StripImageAdapter;
 import com.arielvila.comicreader.animation.DepthPageTransformer;
 import com.arielvila.comicreader.helper.DirContents;
 import com.arielvila.comicreader.helper.ExtendedViewPager;
-import com.arielvila.comicreader.helper.FavoriteMenuItem;
+import com.arielvila.comicreader.helper.StripMenu;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -88,19 +91,33 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         mCurrentStripName = stripName;
         ((ActionBarActivity)getActivity()).getSupportActionBar().setTitle(stripName);
         updateFavoriteIcon();
+        StripMenu.getInstance().setShareMenuIcon(R.drawable.ic_share_white_24dp);
     }
 
     private void updateFavoriteIcon() {
         if (DirContents.getIntance().favDirContains(mCurrentStripName)) {
-            FavoriteMenuItem.getInstance().setIcon(R.drawable.ic_star_white_24dp);
+            StripMenu.getInstance().setFavMenuIcon(R.drawable.ic_star_white_24dp);
         } else {
-            FavoriteMenuItem.getInstance().setIcon(R.drawable.ic_star_border_white_24dp);
+            StripMenu.getInstance().setFavMenuIcon(R.drawable.ic_star_border_white_24dp);
         }
     }
 
     public void setFavoriteCurrentStrip() {
         DirContents.getIntance().toggleFavorite(mCurrentStripName);
         updateFavoriteIcon();
+    }
+
+    public String getStripFilePath() {
+        return DirContents.getIntance().getFilePath(mCurrentStripName);
+    }
+
+    public void shareCurrentStrip() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("image/*");
+        Uri uri = Uri.fromFile(new File(getStripFilePath()));
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        startActivity(shareIntent);
     }
 
     public interface StripDetailCallbacks {

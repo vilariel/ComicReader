@@ -83,6 +83,14 @@ public class DirContents {
         return (indexContains(mFavDir, stripName) >= 0);
     }
 
+    public String getFilePath(String stripName) {
+        int dataInd = indexContains(mDataDir, stripName);
+        if (dataInd >= 0) {
+            return mDataDir.get(dataInd);
+        }
+        return "";
+    }
+
     public void toggleFavorite(String stripName) {
         int favInd = indexContains(mFavDir, stripName);
         if (favInd >= 0) {

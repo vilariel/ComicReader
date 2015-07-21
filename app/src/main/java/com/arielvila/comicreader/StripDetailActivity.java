@@ -4,17 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.arielvila.comicreader.helper.FavoriteMenuItem;
+import com.arielvila.comicreader.helper.StripMenu;
 
 
 public class StripDetailActivity extends ActionBarActivity implements StripDetailFragment.StripDetailCallbacks {
 
     private static final String TAG = "StripDetailActivity";
-    StripDetailFragment mStripDetailFragment = null;
+    private StripDetailFragment mStripDetailFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +40,7 @@ public class StripDetailActivity extends ActionBarActivity implements StripDetai
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_detail, menu);
-        FavoriteMenuItem.getInstance().setMenuItem(menu.findItem(R.id.action_favourite));
+        StripMenu.getInstance().setFavMenuItem(menu.findItem(R.id.action_favourite));
         return true;
     }
 
@@ -54,6 +53,8 @@ public class StripDetailActivity extends ActionBarActivity implements StripDetai
             return true;
         } else if (id == R.id.action_favourite) {
             mStripDetailFragment.setFavoriteCurrentStrip();
+        } else if (id == R.id.action_share) {
+            mStripDetailFragment.shareCurrentStrip();
         }
         return super.onOptionsItemSelected(item);
     }
