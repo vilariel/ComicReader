@@ -151,6 +151,13 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         return getSelectedItems().contains(position);
     }
 
+    public void itemClick(String filePath) {
+        int ind = mFilePaths.indexOf(filePath);
+        if (ind >= 0) {
+            itemClick(ind);
+        }
+    }
+
     public void itemClick(int position) {
         switch (mChoiceMode) {
             case CHOICE_MODE_MULTIPLE:

@@ -32,6 +32,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     private boolean mTwoPane;
     private ActionBarDrawerToggle mDrawerToggle;
     StripDetailFragment mStripDetailFragment = null;
+    StripGridFragment mStripGridFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,6 +145,11 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         }
     }
 
+    @Override
+    public void setStripGridFragment(StripGridFragment stripGridFragment) {
+        mStripGridFragment = stripGridFragment;
+    }
+
     public Context getContext() {
         return this;
     }
@@ -164,5 +170,12 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
 
     public void setStripDetailFragment(StripDetailFragment stripDetailFragment) {
         this.mStripDetailFragment = stripDetailFragment;
+    }
+
+    @Override
+    public void setCurrentStrip(String stripName) {
+        if (mStripGridFragment != null) {
+            mStripGridFragment.selectItem(stripName);
+        }
     }
 }

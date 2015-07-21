@@ -62,4 +62,9 @@ public class StripDetailActivity extends ActionBarActivity implements StripDetai
     public void setStripDetailFragment(StripDetailFragment stripDetailFragment) {
         this.mStripDetailFragment = stripDetailFragment;
     }
+
+    @Override
+    public void setCurrentStrip(String stripName) {
+        // do nothing
+    }
 }

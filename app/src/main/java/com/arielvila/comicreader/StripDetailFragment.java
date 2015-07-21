@@ -92,6 +92,7 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         ((ActionBarActivity)getActivity()).getSupportActionBar().setTitle(stripName);
         updateFavoriteIcon();
         StripMenu.getInstance().setShareMenuIcon(R.drawable.ic_share_white_24dp);
+        ((StripDetailCallbacks) getActivity()).setCurrentStrip(stripName);
     }
 
     private void updateFavoriteIcon() {
@@ -122,5 +123,6 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
 
     public interface StripDetailCallbacks {
         void setStripDetailFragment(StripDetailFragment stripDetailFragment);
+        void setCurrentStrip(String stripName);
     }
 }

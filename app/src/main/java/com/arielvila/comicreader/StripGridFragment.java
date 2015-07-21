@@ -69,6 +69,8 @@ public class StripGridFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Necessary when attached to StripGridActivity and/or when recreated
+        ((StripGridCallbacks) getActivity()).setStripGridFragment(this);
     }
 
     @Override
@@ -194,6 +196,11 @@ public class StripGridFragment extends Fragment {
         mActivatedPosition = position;
     }
 
+    public void selectItem(String stripName) {
+        String filePath = DirContents.getIntance().getFilePath(stripName);
+        mAdapter.itemClick(filePath);
+    }
+
     private class DownloadStateReceiver extends BroadcastReceiver {
 
         private DownloadStateReceiver() {
@@ -246,11 +253,9 @@ public class StripGridFragment extends Fragment {
     public interface StripGridCallbacks {
 
         Context getContext();
-
-        /**
-         * Callback for when an item has been selected.
-         */
+        // Callback for when an item has been selected.
         void onItemSelected(String id);
+        void setStripGridFragment(StripGridFragment stripGridFragment);
 
     }
 
