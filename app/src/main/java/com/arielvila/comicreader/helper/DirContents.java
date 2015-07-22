@@ -16,17 +16,45 @@ public class DirContents {
     private static final String TAG = "DirContents";
     private static DirContents intance = null;
 
+    private static final int CURR_DIR_DATA = 1;
+    private static final int CURR_DIR_FAV = 2;
+
     private ArrayList<String> mDataDir = new ArrayList<>();
     private ArrayList<String> mFavDir = new ArrayList<>();
+    private ArrayList<String> mCurrDir = mDataDir;
 
     private String mDataPath = null;
     private String mFavPath = null;
+
+    private int mCurrDirId = CURR_DIR_DATA;
 
     public static DirContents getIntance() {
         if (intance == null) {
             intance = new DirContents();
         }
         return intance;
+    }
+
+    public ArrayList<String> getCurrDir() {
+        return mCurrDir;
+    }
+
+    public void setCurrDirData() {
+        mCurrDir = mDataDir;
+        mCurrDirId = CURR_DIR_DATA;
+    }
+
+    public void setCurrDirFav() {
+        mCurrDir = mFavDir;
+        mCurrDirId = CURR_DIR_FAV;
+    }
+
+    public boolean isCurrDirData() {
+        return (mCurrDirId == CURR_DIR_DATA);
+    }
+
+    public boolean isCurrDirFav() {
+        return (mCurrDirId == CURR_DIR_FAV);
     }
 
     public ArrayList<String> getDataDir() {

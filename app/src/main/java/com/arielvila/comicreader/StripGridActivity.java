@@ -18,6 +18,7 @@ import android.widget.ListView;
 
 import com.arielvila.comicreader.adapter.DrawerListAdapter;
 import com.arielvila.comicreader.helper.AppConstant;
+import com.arielvila.comicreader.helper.DirContents;
 import com.arielvila.comicreader.helper.DrawerItem;
 import com.arielvila.comicreader.helper.StripMenu;
 
@@ -31,32 +32,37 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     // Whether or not the activity is in two-pane mode, i.e. running on a tablet
     private boolean mTwoPane;
     private ActionBarDrawerToggle mDrawerToggle;
-    StripDetailFragment mStripDetailFragment = null;
-    StripGridFragment mStripGridFragment = null;
+    private StripDetailFragment mStripDetailFragment = null;
+    private StripGridFragment mStripGridFragment = null;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private DrawerItem mFavoriteDrawerItem;
+    private DrawerItem mFavoriteDrawerItemFav;
+    private DrawerItem mFavoriteDrawerItemData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_strip_grid);
-        setTitle(getString(R.string.app_name) + "               "); // Workaround for the title truncation issue
+        setAppTitle("");
         setPreferencesDefaultValues();
 
-        DrawerLayout drawerLayout;
-        ListView drawerList;
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawerList = (ListView) findViewById(R.id.left_drawer);
-
-        drawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         ArrayList<DrawerItem> items = new ArrayList<>();
-        items.add(new DrawerItem(R.string.favTitle, R.drawable.ic_star_white_18dp));
+        mFavoriteDrawerItemFav = new DrawerItem(R.string.favoritesTitleFav, R.drawable.ic_star_white_18dp);
+        mFavoriteDrawerItemData = new DrawerItem(R.string.favoritesTitleData, R.drawable.ic_star_half_white_18dp);
+        mFavoriteDrawerItem = (DirContents.getIntance().isCurrDirData()) ? mFavoriteDrawerItemFav : mFavoriteDrawerItemData;
+        items.add(mFavoriteDrawerItem);
         items.add(new DrawerItem(R.string.prefTitle, R.drawable.ic_settings_white_18dp));
 
-        drawerList.setAdapter(new DrawerListAdapter(this, items));
-        drawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mDrawerList.setAdapter(new DrawerListAdapter(this, items));
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
-        mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close);
-        drawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -93,9 +99,9 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_favourite && mStripDetailFragment != null) {
+        if (id == R.id.action_favourite && mStripDetailFragment != null && !mStripDetailFragment.getCurrentStripName().equals("")) {
             mStripDetailFragment.setFavoriteCurrentStrip();
-        } else if (id == R.id.action_share && mStripDetailFragment != null) {
+        } else if (id == R.id.action_share && mStripDetailFragment != null && !mStripDetailFragment.getCurrentStripName().equals("")) {
             mStripDetailFragment.shareCurrentStrip();
         }
         mDrawerToggle.onOptionsItemSelected(item);
@@ -135,7 +141,6 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.strip_detail_container, fragment)
                     .commit();
-
         } else {
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
@@ -162,9 +167,37 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     }
 
     private void selectDrawerItem(int position) {
-        if (position == 1) {
+        mDrawerLayout.closeDrawers();
+        if (position == 0) {
+            toggleFavorites();
+        } else if (position == 1) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
+        }
+    }
+
+    private void toggleFavorites() {
+        DrawerListAdapter drawerListAdapter = (DrawerListAdapter) mDrawerList.getAdapter();
+        drawerListAdapter.remove(mFavoriteDrawerItem);
+        if (DirContents.getIntance().isCurrDirData()) {
+            mFavoriteDrawerItem = mFavoriteDrawerItemData;
+            DirContents.getIntance().setCurrDirFav();
+        } else {
+            mFavoriteDrawerItem = mFavoriteDrawerItemFav;
+            DirContents.getIntance().setCurrDirData();
+        }
+        mStripGridFragment.updateDirectory();
+        drawerListAdapter.insert(mFavoriteDrawerItem, 0);
+        setAppTitle("");
+        if (mTwoPane) {
+            StripMenu.getInstance().setShareMenuIcon(R.drawable.ic_star_invisible_24dp);
+            StripMenu.getInstance().setFavMenuIcon(R.drawable.ic_star_invisible_24dp);
+            getSupportFragmentManager().beginTransaction()
+                    .remove(mStripDetailFragment)
+                    .commit();
+            if (mStripDetailFragment != null) {
+                mStripDetailFragment.clearCurrentStrip();
+            }
         }
     }
 
@@ -177,5 +210,18 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         if (mStripGridFragment != null) {
             mStripGridFragment.selectItem(stripName);
         }
+    }
+
+    @Override
+    public void setAppTitle(String title) {
+        String newTitle = getString(R.string.app_name);
+        if (DirContents.getIntance().isCurrDirFav()) {
+            newTitle = getString(R.string.favoritesTitleFav);
+        }
+        if (title != null && !title.equals("")) {
+            newTitle += " - " + title;
+        }
+        newTitle += "                                      "; // Workaround for the title truncation issue
+        getSupportActionBar().setTitle(newTitle);
     }
 }

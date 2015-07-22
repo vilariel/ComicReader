@@ -10,5 +10,6 @@
     <string name="prefOpenLastSummary">Abre el último chiste visto al comenzar</string>
     <string name="drawer_open">Abrir navigation drawer</string>
     <string name="drawer_close">Cerrar navigation drawer</string>
-    <string name="favTitle">Favoritos</string>
+    <string name="favoritesTitleFav">Favoritos</string>
+    <string name="favoritesTitleData">Todos</string>
 </resources>

@@ -127,6 +127,12 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         return mFilePaths.size();
     }
 
+    public void changeFilePaths(ArrayList<String> filePaths) {
+        this.mFilePaths = filePaths;
+        mSelectedItems.clear();
+        notifyDataSetChanged();
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder {
         public View viewItem;
         public ImageView imgThumbnail;

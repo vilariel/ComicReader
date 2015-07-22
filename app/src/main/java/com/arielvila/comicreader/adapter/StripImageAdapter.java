@@ -19,6 +19,7 @@ public class StripImageAdapter extends PagerAdapter {
     private final static String TAG = "StripImageAdapter";
     private IStripImageFragment mStripImageFragment;
     private ArrayList<String> mImagePaths;
+    TouchImageView mImgDisplay;
 
     // constructor
     public StripImageAdapter(IStripImageFragment caller, ArrayList<String> imagePaths) {
@@ -38,18 +39,16 @@ public class StripImageAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        TouchImageView imgDisplay;
-
         LayoutInflater inflater = (LayoutInflater) mStripImageFragment.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View viewLayout = inflater.inflate(R.layout.strip_image, container, false);
 
-        imgDisplay = (TouchImageView) viewLayout.findViewById(R.id.imgDisplay);
+        mImgDisplay = (TouchImageView) viewLayout.findViewById(R.id.imgDisplay);
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         String pathName = mImagePaths.get(position);
         Bitmap bitmap = BitmapFactory.decodeFile(pathName, options);
-        imgDisplay.setImageBitmap(bitmap);
+        mImgDisplay.setImageBitmap(bitmap);
         container.addView(viewLayout);
         return viewLayout;
     }

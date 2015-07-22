@@ -104,7 +104,7 @@ public class StripGridFragment extends Fragment {
         mLayoutManager = new GridLayoutManager(getActivity(), columns);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getDataDir(), inflater,
+        mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getCurrDir(), inflater,
                 container, fragmentWidthPixels, columns, metrics.density, retainFragment.getRetainedCache());
         mAdapter.setLoadingImage(R.drawable.empty_photo);
         mRecyclerView.setAdapter(mAdapter);
@@ -199,6 +199,10 @@ public class StripGridFragment extends Fragment {
     public void selectItem(String stripName) {
         String filePath = DirContents.getIntance().getFilePath(stripName);
         mAdapter.itemClick(filePath);
+    }
+
+    public void updateDirectory() {
+        mAdapter.changeFilePaths(DirContents.getIntance().getCurrDir());
     }
 
     private class DownloadStateReceiver extends BroadcastReceiver {

@@ -67,4 +67,9 @@ public class StripDetailActivity extends ActionBarActivity implements StripDetai
     public void setCurrentStrip(String stripName) {
         // do nothing
     }
+
+    @Override
+    public void setAppTitle(String title) {
+        getSupportActionBar().setTitle(title);
+    }
 }
