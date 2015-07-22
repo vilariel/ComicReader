@@ -2,6 +2,8 @@ package com.arielvila.comicreader.helper;
 
 import android.util.Log;
 
+import com.arielvila.comicreader.BuildConfig;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -107,6 +109,9 @@ public class DirContents {
         Calendar calendar = new GregorianCalendar();
         calendar.setTimeInMillis(((Date) new Date()).getTime());
         String todayStr = mDateFormatShort.format(calendar.getTime());
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "isDataDirUpToDate() - lastStripName: " + lastStripName + ", todayStr: " + todayStr);
+        }
         return (lastStripName != null && todayStr != null && lastStripName.equals(todayStr));
     }
 

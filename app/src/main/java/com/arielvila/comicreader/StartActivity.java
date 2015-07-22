@@ -27,7 +27,9 @@ public class StartActivity extends Activity {
         Intent intent = new Intent(this, StripGridActivity.class);
         String mustOpen = "";
         if (prefs.getBoolean("openlast", false)) {
-            Log.i(TAG, "onCreate() must open last");
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, "onCreate() must open last");
+            }
             mustOpen = prefs.getString("lastviewed", "");
         }
         intent.putExtra(START_PARAMETER_OPEN_LAST, mustOpen);
@@ -40,13 +42,12 @@ public class StartActivity extends Activity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         if (prefs.getString("datadir", "").equals("")) {
             if (BuildConfig.DEBUG) {
-                // for my phone: android.os.Environment.getExternalStorageDirectory()
                 Log.i(TAG, "DataDir set to: " + getFilesDir() + File.separator + AppConstant.DEFAULT_DIR_NAME);
             }
             prefs.edit().putString("datadir", getFilesDir() + File.separator + AppConstant.DEFAULT_DIR_NAME).apply();
         }
         if (prefs.getString("favdir", "").equals("")) {
-            prefs.edit().putString("favdir", getFilesDir() + File.separator + AppConstant.DEFAULT_FAV_NAME).apply();
+            prefs.edit().putString("favdir", android.os.Environment.getExternalStorageDirectory() + File.separator + AppConstant.DEFAULT_FAV_NAME).apply();
         }
     }
 

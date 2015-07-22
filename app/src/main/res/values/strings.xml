@@ -8,4 +8,6 @@
     <string name="drawer_close">Close navigation drawer</string>
     <string name="favoritesTitleFav">Favorites</string>
     <string name="favoritesTitleData">All</string>
+    <string name="prefFavdirTitle">Favorites folder</string>
+    <string name="prefFavdirSummary">Offline favorite strips container folder</string>
 </resources>

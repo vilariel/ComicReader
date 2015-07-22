@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -131,7 +132,8 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
             shareIntent.setType("image/*");
-            Uri uri = Uri.fromFile(new File(getStripFilePath()));
+            Uri uri = FileProvider.getUriForFile(getContext(), "com.arielvila.comicreader.fileprovider",
+                    new File(getStripFilePath()));
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(shareIntent);
         }

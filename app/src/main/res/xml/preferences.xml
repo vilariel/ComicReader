@@ -10,14 +10,14 @@
             android:defaultValue="false">
         </CheckBoxPreference>
         <EditTextPreference
-            android:key="datadir"
-            android:shouldDisableView="true"
-            android:enabled="false"
-            android:selectable="false"
-            android:defaultValue="">
+            android:key="favdir"
+            android:defaultValue=""
+            android:title="@string/prefFavdirTitle"
+            android:summary="@string/prefFavdirSummary"
+            android:dialogTitle="@string/prefFavdirTitle">
         </EditTextPreference>
         <EditTextPreference
-            android:key="favdir"
+            android:key="datadir"
             android:shouldDisableView="true"
             android:enabled="false"
             android:selectable="false"
