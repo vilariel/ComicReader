@@ -180,11 +180,6 @@ public class StripGridFragment extends Fragment {
         if (position >= 0) {
             mRecyclerView.scrollToPosition(DirContents.getInstance().getCurrDir().size() - 1);
             mRecyclerView.smoothScrollToPosition(position);
-//            if (smoothly) {
-//                mRecyclerView.smoothScrollToPosition(position);
-//            } else {
-//                mRecyclerView.scrollToPosition(position);
-//            }
         }
     }
 
