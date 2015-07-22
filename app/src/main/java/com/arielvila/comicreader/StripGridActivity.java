@@ -2,33 +2,32 @@ package com.arielvila.comicreader;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.arielvila.comicreader.adapter.DrawerListAdapter;
-import com.arielvila.comicreader.helper.AppConstant;
 import com.arielvila.comicreader.helper.DirContents;
 import com.arielvila.comicreader.helper.DrawerItem;
 import com.arielvila.comicreader.helper.StripMenu;
 
-import java.io.File;
 import java.util.ArrayList;
 
 
 public class StripGridActivity extends ActionBarActivity implements StripGridFragment.StripGridCallbacks,
         StripDetailFragment.StripDetailCallbacks {
 
+    private static final String TAG = "StripGridActivity";
+    private static final String STATE_FIRST_START = "firstStart";
     // Whether or not the activity is in two-pane mode, i.e. running on a tablet
     private boolean mTwoPane;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -45,7 +44,6 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_strip_grid);
         setAppTitle("");
-        setPreferencesDefaultValues();
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -54,7 +52,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         ArrayList<DrawerItem> items = new ArrayList<>();
         mFavoriteDrawerItemFav = new DrawerItem(R.string.favoritesTitleFav, R.drawable.ic_star_white_18dp);
         mFavoriteDrawerItemData = new DrawerItem(R.string.favoritesTitleData, R.drawable.ic_star_half_white_18dp);
-        mFavoriteDrawerItem = (DirContents.getIntance().isCurrDirData()) ? mFavoriteDrawerItemFav : mFavoriteDrawerItemData;
+        mFavoriteDrawerItem = (DirContents.getInstance().isCurrDirData()) ? mFavoriteDrawerItemFav : mFavoriteDrawerItemData;
         items.add(mFavoriteDrawerItem);
         items.add(new DrawerItem(R.string.prefTitle, R.drawable.ic_settings_white_18dp));
 
@@ -82,13 +80,26 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
                     .setActivateOnItemClick(true);
         }
 
-        // TODO: If exposing deep links into your app, handle intents here.
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = getIntent();
+        String openLast = intent.getStringExtra(StartActivity.START_PARAMETER_OPEN_LAST);
+        Log.i(TAG, "oStart() openLast: " + openLast);
+        if (openLast != null && !openLast.equals("")) {
+            int position = DirContents.getInstance().getDataFilePosition(openLast);
+            if (position >= 0) {
+                selectItem(String.valueOf(position));
+            }
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+            getMenuInflater().inflate(R.menu.menu_main, menu);
         if (mTwoPane) {
             StripMenu.getInstance().setFavMenuItem(menu.findItem(R.id.action_favourite));
             StripMenu.getInstance().setShareMenuItem(menu.findItem(R.id.action_share));
@@ -113,23 +124,12 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
-    private void setPreferencesDefaultValues() {
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (prefs.getString("datadir", "").equals("")) {
-            prefs.edit().putString("datadir", android.os.Environment.getExternalStorageDirectory() + File.separator + AppConstant.DEFAULT_DIR_NAME).apply();
-        }
-        if (prefs.getString("favdir", "").equals("")) {
-            prefs.edit().putString("favdir", android.os.Environment.getExternalStorageDirectory() + File.separator + AppConstant.DEFAULT_FAV_NAME).apply();
-        }
-    }
-
     /**
      * Callback method from {@link StripGridFragment.StripGridCallbacks}
      * indicating that the item with the given ID was selected.
      */
     @Override
-    public void onItemSelected(String id) {
+    public void selectItem(String id) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -179,12 +179,12 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     private void toggleFavorites() {
         DrawerListAdapter drawerListAdapter = (DrawerListAdapter) mDrawerList.getAdapter();
         drawerListAdapter.remove(mFavoriteDrawerItem);
-        if (DirContents.getIntance().isCurrDirData()) {
+        if (DirContents.getInstance().isCurrDirData()) {
             mFavoriteDrawerItem = mFavoriteDrawerItemData;
-            DirContents.getIntance().setCurrDirFav();
+            DirContents.getInstance().setCurrDirFav();
         } else {
             mFavoriteDrawerItem = mFavoriteDrawerItemFav;
-            DirContents.getIntance().setCurrDirData();
+            DirContents.getInstance().setCurrDirData();
         }
         mStripGridFragment.updateDirectory();
         drawerListAdapter.insert(mFavoriteDrawerItem, 0);
@@ -215,7 +215,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
     @Override
     public void setAppTitle(String title) {
         String newTitle = getString(R.string.app_name);
-        if (DirContents.getIntance().isCurrDirFav()) {
+        if (DirContents.getInstance().isCurrDirFav()) {
             newTitle = getString(R.string.favoritesTitleFav);
         }
         if (title != null && !title.equals("")) {

@@ -2,8 +2,10 @@ package com.arielvila.comicreader;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,7 +66,7 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         ExtendedViewPager viewPager = (ExtendedViewPager) fragmentView.findViewById(R.id.pager);
         viewPager.setPageTransformer(true, new DepthPageTransformer());
 
-        mComicsDir = DirContents.getIntance().getCurrDir();
+        mComicsDir = DirContents.getInstance().getCurrDir();
 
         mAdapter = new StripImageAdapter(this, mComicsDir);
 
@@ -88,6 +90,12 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         StripMenu.getInstance().setShareMenuIcon(R.drawable.ic_share_white_24dp);
         ((StripDetailCallbacks) getActivity()).setAppTitle(stripName);
         ((StripDetailCallbacks) getActivity()).setCurrentStrip(stripName);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        if (DirContents.getInstance().isCurrDirData()) {
+            prefs.edit().putString("lastviewed", stripName).apply();
+        } else {
+            prefs.edit().putString("lastviewedfav", stripName).apply();
+        }
     }
 
     public void clearCurrentStrip() {
@@ -100,7 +108,7 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
     }
 
     private void updateFavoriteIcon() {
-        if (DirContents.getIntance().favDirContains(mCurrentStripName)) {
+        if (DirContents.getInstance().favDirContains(mCurrentStripName)) {
             StripMenu.getInstance().setFavMenuIcon(R.drawable.ic_star_white_24dp);
         } else {
             StripMenu.getInstance().setFavMenuIcon(R.drawable.ic_star_border_white_24dp);
@@ -109,13 +117,13 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
 
     public void setFavoriteCurrentStrip() {
         if (mCurrentStripName != null && !mCurrentStripName.equals("")) {
-            DirContents.getIntance().toggleFavorite(mCurrentStripName);
+            DirContents.getInstance().toggleFavorite(mCurrentStripName);
             updateFavoriteIcon();
         }
     }
 
     public String getStripFilePath() {
-        return DirContents.getIntance().getFilePath(mCurrentStripName);
+        return DirContents.getInstance().getFilePath(mCurrentStripName);
     }
 
     public void shareCurrentStrip() {

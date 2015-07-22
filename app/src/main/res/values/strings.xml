@@ -2,10 +2,6 @@
     <string name="app_name">Comics Reader</string>
     <string name="prefTitle">Settings</string>
     <string name="prefSummary">Application Settings</string>
-    <string name="prefDatadirTitle">Data folder</string>
-    <string name="prefDatadirSummary">Offline strips container folder</string>
-    <string name="prefFavdirTitle">Favorites folder</string>
-    <string name="prefFavdirSummary">Offline favorite strips container folder</string>
     <string name="prefOpenLastTitle">Open last</string>
     <string name="prefOpenLastSummary">Open last viewed strip when application starts</string>
     <string name="drawer_open">Open navigation drawer</string>

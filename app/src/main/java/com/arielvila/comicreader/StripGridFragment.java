@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -17,7 +18,6 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.GridView;
 import android.widget.Toast;
 
 import com.arielvila.comicreader.adapter.GridAdapter;
@@ -47,17 +47,6 @@ public class StripGridFragment extends Fragment {
     private AlarmReceiver mAlarm = new AlarmReceiver();
     private SwipeRefreshLayout mSwipeLayout;
     private long mLastTimeRefreshed;
-
-    /**
-     * The serialization (saved instance state) Bundle key representing the
-     * activated item position. Only used on tablets.
-     */
-    private static final String STATE_ACTIVATED_POSITION = "activated_position";
-
-    /**
-     * The current activated item position. Only used on tablets.
-     */
-    private int mActivatedPosition = GridView.INVALID_POSITION;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -95,16 +84,12 @@ public class StripGridFragment extends Fragment {
         int fragmentWidthDp = res.getInteger(R.integer.grid_width_dp);
         int fragmentWidthPixels = (fragmentWidthDp > 0) ? Math.round(fragmentWidthDp * metrics.density) : metrics.widthPixels;
 
-//        DirContents.getIntance().removeContent(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("datadir", ""));
-        DirContents.getIntance().refreshDataDir(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("datadir", ""));
-        DirContents.getIntance().refreshFavDir(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("favdir", ""));
-
         mRecyclerView = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new GridLayoutManager(getActivity(), columns);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getIntance().getCurrDir(), inflater,
+        mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getInstance().getCurrDir(), inflater,
                 container, fragmentWidthPixels, columns, metrics.density, retainFragment.getRetainedCache());
         mAdapter.setLoadingImage(R.drawable.empty_photo);
         mRecyclerView.setAdapter(mAdapter);
@@ -123,32 +108,19 @@ public class StripGridFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Restore the previously serialized activated item position.
-        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-            setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
-        }
+        scrollToLastViewed(false);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        if (prefs.getBoolean("firstRun", true)) {
-            prefs.edit().putBoolean("firstRun", false).apply();
+        if (prefs.getString("firstRun", "1").equals("1")) {
+            prefs.edit().putString("firstRun", "0").apply();
             mAlarm.setAlarm(getActivity());
         }
-        if (DirContents.getIntance().getDataDir().size() == 0) {
+        if (DirContents.getInstance().getDataDir().size() == 0 || !DirContents.getInstance().isDataDirUpToDate()) {
             downloadNow();
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (mActivatedPosition != GridView.INVALID_POSITION) {
-            // Serialize and persist the activated item position.
-            outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
         }
     }
 
@@ -187,22 +159,33 @@ public class StripGridFragment extends Fragment {
         mAdapter.setChoiceMode(activateOnItemClick ? GridAdapter.CHOICE_MODE_SINGLE : GridAdapter.CHOICE_MODE_NONE);
     }
 
-    private void setActivatedPosition(int position) {
-        if (position == GridView.INVALID_POSITION) {
-            mAdapter.setItemChecked(mActivatedPosition, false);
-        } else {
-            mAdapter.setItemChecked(position, true);
-        }
-        mActivatedPosition = position;
-    }
-
     public void selectItem(String stripName) {
-        String filePath = DirContents.getIntance().getFilePath(stripName);
+        String filePath = DirContents.getInstance().getFilePath(stripName);
         mAdapter.itemClick(filePath);
     }
 
     public void updateDirectory() {
-        mAdapter.changeFilePaths(DirContents.getIntance().getCurrDir());
+        mAdapter.changeFilePaths(DirContents.getInstance().getCurrDir());
+        scrollToLastViewed(true);
+    }
+
+    public void scrollToLastViewed(boolean smoothly) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        int position;
+        if (DirContents.getInstance().isCurrDirData()) {
+            position = DirContents.getInstance().getDataFilePosition(prefs.getString("lastviewed", ""));
+        } else {
+            position = DirContents.getInstance().getDataFilePosition(prefs.getString("lastviewedfav", ""));
+        }
+        if (position >= 0) {
+            mRecyclerView.scrollToPosition(DirContents.getInstance().getCurrDir().size() - 1);
+            mRecyclerView.smoothScrollToPosition(position);
+//            if (smoothly) {
+//                mRecyclerView.smoothScrollToPosition(position);
+//            } else {
+//                mRecyclerView.scrollToPosition(position);
+//            }
+        }
     }
 
     private class DownloadStateReceiver extends BroadcastReceiver {
@@ -258,7 +241,7 @@ public class StripGridFragment extends Fragment {
 
         Context getContext();
         // Callback for when an item has been selected.
-        void onItemSelected(String id);
+        void selectItem(String id);
         void setStripGridFragment(StripGridFragment stripGridFragment);
 
     }

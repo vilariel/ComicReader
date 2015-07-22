@@ -3,39 +3,34 @@
     <PreferenceCategory
         android:title="@string/prefTitle"
         android:summary="@string/prefSummary">
-        <EditTextPreference
-            android:title="@string/prefDatadirTitle"
-            android:summary="@string/prefDatadirSummary"
-            android:dialogTitle="@string/prefDatadirTitle"
-            android:shouldDisableView="true"
-            android:key="datadir"
-            android:enabled="false"
-            android:selectable="false"
-            android:defaultValue="">
-        </EditTextPreference>
-        <EditTextPreference
-            android:title="@string/prefFavdirTitle"
-            android:summary="@string/prefFavdirSummary"
-            android:dialogTitle="@string/prefFavdirTitle"
-            android:shouldDisableView="true"
-            android:enabled="false"
-            android:selectable="false"
-            android:key="favdir"
-            android:defaultValue="">
-        </EditTextPreference>
         <CheckBoxPreference
             android:summary="@string/prefOpenLastSummary"
             android:title="@string/prefOpenLastTitle"
             android:key="openlast"
-            android:defaultValue="true">
+            android:defaultValue="false">
         </CheckBoxPreference>
-        <CheckBoxPreference
+        <EditTextPreference
+            android:key="datadir"
+            android:shouldDisableView="true"
+            android:enabled="false"
+            android:selectable="false"
+            android:defaultValue="">
+        </EditTextPreference>
+        <EditTextPreference
+            android:key="favdir"
+            android:shouldDisableView="true"
+            android:enabled="false"
+            android:selectable="false"
+            android:defaultValue="">
+        </EditTextPreference>
+        <!-- firstRun should be a hidden check (boolean), but is still visible in some devices -->
+        <EditTextPreference
             android:key="firstRun"
             android:shouldDisableView="true"
             android:enabled="false"
             android:selectable="false"
-            android:defaultValue="true">
-        </CheckBoxPreference>
+            android:defaultValue="1">
+        </EditTextPreference>
         <EditTextPreference
             android:key="lastviewed"
             android:shouldDisableView="true"

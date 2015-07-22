@@ -273,7 +273,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
         public void onClick(View v) {
             if (mAllowsClick) {
                 itemClick(mPostion);
-                mCallback.onItemSelected(String.valueOf(mPostion));
+                mCallback.selectItem(String.valueOf(mPostion));
             }
         }
     }

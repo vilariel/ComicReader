@@ -8,31 +8,33 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class DirContents {
     private static final String TAG = "DirContents";
-    private static DirContents intance = null;
+    private static DirContents instance = null;
 
     private static final int CURR_DIR_DATA = 1;
     private static final int CURR_DIR_FAV = 2;
-
+    private int mCurrDirId = CURR_DIR_DATA;
     private ArrayList<String> mDataDir = new ArrayList<>();
     private ArrayList<String> mFavDir = new ArrayList<>();
     private ArrayList<String> mCurrDir = mDataDir;
-
     private String mDataPath = null;
     private String mFavPath = null;
+    private SimpleDateFormat mDateFormatShort = new SimpleDateFormat("yyyy-MM-dd");
 
-    private int mCurrDirId = CURR_DIR_DATA;
-
-    public static DirContents getIntance() {
-        if (intance == null) {
-            intance = new DirContents();
+    public static DirContents getInstance() {
+        if (instance == null) {
+            instance = new DirContents();
         }
-        return intance;
+        return instance;
     }
 
     public ArrayList<String> getCurrDir() {
@@ -100,6 +102,14 @@ public class DirContents {
         return result;
     }
 
+    public boolean isDataDirUpToDate() {
+        String lastStripName = getLastDataFile().replaceAll(".*/", "").replaceAll("\\..*", "");
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(((Date) new Date()).getTime());
+        String todayStr = mDateFormatShort.format(calendar.getTime());
+        return (lastStripName != null && todayStr != null && lastStripName.equals(todayStr));
+    }
+
     public void addDataFile(String fileName) {
         if (!mDataDir.contains(fileName)) {
             mDataDir.add(fileName);
@@ -117,6 +127,14 @@ public class DirContents {
             return mDataDir.get(dataInd);
         }
         return "";
+    }
+
+    public int getDataFilePosition(String stripName) {
+        return indexContains(mDataDir, stripName);
+    }
+
+    public int getFavFilePosition(String stripName) {
+        return indexContains(mFavDir, stripName);
     }
 
     public void toggleFavorite(String stripName) {

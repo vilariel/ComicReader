@@ -22,24 +22,24 @@ public class DownloadService extends IntentService implements IStripSavedInforme
     protected void onHandleIntent(Intent intent) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String dataDir = prefs.getString("datadir", "");
-        DirContents.getIntance().refreshDataDir(dataDir);
+        DirContents.getInstance().refreshDataDir(dataDir);
         int qttyToDownload = intent.getIntExtra(AppConstant.DOWNLOAD_QTTY, AppConstant.DEFAULT_GROUP_QTTY_TO_DOWNLOAD);
         switch (intent.getIntExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE)) {
             case AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE :
-                String lastDataFile = DirContents.getIntance().getLastDataFile();
+                String lastDataFile = DirContents.getInstance().getLastDataFile();
                 String lastDay = lastDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
                 Log.i(TAG, "lastDay: " + lastDay);
                 if (lastDay.equals("")) {
-                    DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, qttyToDownload, "");
+                    DownloadStrips.getInstance().downloadGroupPrevious(this, dataDir, qttyToDownload, "");
                 } else {
-                    DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, lastDay, "");
+                    DownloadStrips.getInstance().downloadGroupPrevious(this, dataDir, lastDay, "");
                 }
                 AlarmReceiver.completeWakefulIntent(intent);
                 break;
             case AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS :
-                String firstDataFile = DirContents.getIntance().getFirstDataFile();
+                String firstDataFile = DirContents.getInstance().getFirstDataFile();
                 String firstDay = firstDataFile.replaceAll(".*/", "").replaceAll("\\..*", "");
-                DownloadStrips.getIntance().downloadGroupPrevious(this, dataDir, qttyToDownload, firstDay);
+                DownloadStrips.getInstance().downloadGroupPrevious(this, dataDir, qttyToDownload, firstDay);
                 break;
             default:
                 break;
@@ -48,7 +48,7 @@ public class DownloadService extends IntentService implements IStripSavedInforme
 
     @Override
     public void onFileSaved(String fileName) {
-        DirContents.getIntance().addDataFile(fileName);
+        DirContents.getInstance().addDataFile(fileName);
         Intent localIntent = new Intent(AppConstant.BROADCAST_SAVED_FILE_ACTION);
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }

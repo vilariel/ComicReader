@@ -28,13 +28,13 @@ import java.util.GregorianCalendar;
 public class DownloadStrips {
     public static final String TAG = "Download Strip";
 
-    private static DownloadStrips intance = null;
+    private static DownloadStrips instance = null;
 
-    public static DownloadStrips getIntance() {
-        if (intance == null) {
-            intance = new DownloadStrips();
+    public static DownloadStrips getInstance() {
+        if (instance == null) {
+            instance = new DownloadStrips();
         }
-        return intance;
+        return instance;
     }
 
     private SimpleDateFormat mDateFormatShort = new SimpleDateFormat("yyyy-MM-dd");
