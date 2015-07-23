@@ -201,11 +201,12 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
      * Clear the selection status for all items
      */
     public void clearSelection() {
-        List<Integer> selection = getSelectedItems();
+//        List<Integer> selection = getSelectedItems();
         mSelectedItems.clear();
-        for (Integer i : selection) {
-            notifyItemChanged(i);
-        }
+        notifyDataSetChanged();
+//        for (Integer i : selection) {
+//            notifyItemChanged(i);
+//        }
     }
 
     /**

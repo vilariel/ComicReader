@@ -6,16 +6,17 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.LruCache;
 
-public class RetainMemoryCacheFragment extends Fragment {
-    private static final String TAG = "RetainMemoryCacheFragment";
+public class RetainFragment extends Fragment {
+    private static final String TAG = "RetainFragment";
     private LruCache<String, Bitmap> mRetainedCache;
+    private boolean mDownloading = false;
 
-    public RetainMemoryCacheFragment() {}
+    public RetainFragment() {}
 
-    public static RetainMemoryCacheFragment findOrCreateRetainFragment(FragmentManager fm) {
-        RetainMemoryCacheFragment fragment = (RetainMemoryCacheFragment) fm.findFragmentByTag(TAG);
+    public static RetainFragment findOrCreateRetainFragment(FragmentManager fm) {
+        RetainFragment fragment = (RetainFragment) fm.findFragmentByTag(TAG);
         if (fragment == null) {
-            fragment = new RetainMemoryCacheFragment();
+            fragment = new RetainFragment();
             fm.beginTransaction().add(fragment, TAG).commit();
         }
         return fragment;
@@ -47,5 +48,13 @@ public class RetainMemoryCacheFragment extends Fragment {
             };
         }
         return mRetainedCache;
+    }
+
+    public boolean isDownloading() {
+        return mDownloading;
+    }
+
+    public void setDownloading(boolean downloading) {
+        this.mDownloading = downloading;
     }
 }

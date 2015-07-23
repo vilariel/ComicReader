@@ -21,10 +21,9 @@ import android.widget.Toast;
 
 import com.arielvila.comicreader.adapter.GridAdapter;
 import com.arielvila.comicreader.download.AlarmReceiver;
-import com.arielvila.comicreader.download.DownloadService;
 import com.arielvila.comicreader.helper.AppConstant;
 import com.arielvila.comicreader.helper.DirContents;
-import com.arielvila.comicreader.helper.RetainMemoryCacheFragment;
+import com.arielvila.comicreader.helper.RetainFragment;
 
 import java.util.Date;
 
@@ -38,6 +37,7 @@ import java.util.Date;
  * interface.
  */
 public class StripGridFragment extends Fragment {
+    private static final String TAG = "StripGridFragment";
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -46,6 +46,7 @@ public class StripGridFragment extends Fragment {
     private AlarmReceiver mAlarm = new AlarmReceiver();
     private SwipeRefreshLayout mSwipeLayout;
     private long mLastTimeRefreshed;
+    private RetainFragment mRetainFragment;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -66,7 +67,7 @@ public class StripGridFragment extends Fragment {
     {
         View fragmentView = inflater.inflate(R.layout.fragment_strip_grid, container, false);
 
-        RetainMemoryCacheFragment retainFragment = RetainMemoryCacheFragment.findOrCreateRetainFragment(getFragmentManager());
+        mRetainFragment = RetainFragment.findOrCreateRetainFragment(getFragmentManager());
 
         DisplayMetrics metrics = getActivity().getResources().getDisplayMetrics();
 
@@ -89,7 +90,7 @@ public class StripGridFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getInstance().getCurrDir(), inflater,
-                container, fragmentWidthPixels, columns, metrics.density, retainFragment.getRetainedCache());
+                container, fragmentWidthPixels, columns, metrics.density, mRetainFragment.getRetainedCache());
         mAdapter.setLoadingImage(R.drawable.empty_photo);
         mRecyclerView.setAdapter(mAdapter);
 
@@ -118,7 +119,10 @@ public class StripGridFragment extends Fragment {
             prefs.edit().putString("firstRun", "0").apply();
             mAlarm.setAlarm(getActivity());
         }
-        if (DirContents.getInstance().getDataDir().size() == 0 || !DirContents.getInstance().isDataDirUpToDate()) {
+        if (mRetainFragment.isDownloading()) {
+            setDownloadingMode(false);
+            ((StripGridCallbacks) getActivity()).setDownloadingMode();
+        } else if (DirContents.getInstance().getDataDir().size() == 0 || !DirContents.getInstance().isDataDirUpToDate()) {
             downloadNow();
         }
     }
@@ -136,28 +140,29 @@ public class StripGridFragment extends Fragment {
     }
 
     private void downloadNow() {
-        mAdapter.setAllowsClick(false);
-        // Workaround as mSwipeLayout.setRefreshing(true); doesn't work
-        mSwipeLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                mSwipeLayout.setRefreshing(true);
-            }
-        });
+        setDownloadingMode(false);
         mLastTimeRefreshed = (new Date()).getTime();
-        Intent downloadIntent = new Intent(getActivity(), DownloadService.class);
-        downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
-        downloadIntent.putExtra(AppConstant.DOWNLOAD_QTTY, getResources().getInteger(R.integer.download_qtty));
-        getActivity().startService(downloadIntent);
+        ((StripGridCallbacks) getActivity()).startDownload(AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
     }
 
     private void initiateRefresh() {
-        mAdapter.setAllowsClick(false);
+        setDownloadingMode(true);
         mLastTimeRefreshed = (new Date()).getTime();
-        Intent downloadIntent = new Intent(getActivity(), DownloadService.class);
-        downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS);
-        downloadIntent.putExtra(AppConstant.DOWNLOAD_QTTY, getResources().getInteger(R.integer.download_qtty));
-        getActivity().startService(downloadIntent);
+        ((StripGridCallbacks) getActivity()).startDownload(AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS);
+    }
+
+    private void setDownloadingMode(boolean fromSwipeDown) {
+        mRetainFragment.setDownloading(true);
+        mAdapter.setAllowsClick(false);
+        if (!fromSwipeDown) {
+            // Workaround as mSwipeLayout.setRefreshing(true); doesn't work
+            mSwipeLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeLayout.setRefreshing(true);
+                }
+            });
+        }
     }
 
     /**
@@ -194,6 +199,10 @@ public class StripGridFragment extends Fragment {
         }
     }
 
+    public void clearCurrentStrip() {
+        mAdapter.clearSelection();
+    }
+
     private class DownloadStateReceiver extends BroadcastReceiver {
 
         private DownloadStateReceiver() {
@@ -210,9 +219,11 @@ public class StripGridFragment extends Fragment {
                     }
                     break;
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_END:
+                    mRetainFragment.setDownloading(false);
                     mSwipeLayout.setRefreshing(false);
                     mAdapter.notifyDataSetChanged();
                     mAdapter.setAllowsClick(true);
+                    ((StripGridCallbacks) getActivity()).onDownloadEnded();
                     break;
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR:
                     String error = intent.getStringExtra(AppConstant.BROADCAST_ACTION);
@@ -249,6 +260,9 @@ public class StripGridFragment extends Fragment {
         // Callback for when an item has been selected.
         void selectItem(String id);
         void setStripGridFragment(StripGridFragment stripGridFragment);
+        void startDownload(int mode);
+        void setDownloadingMode();
+        void onDownloadEnded();
 
     }
 

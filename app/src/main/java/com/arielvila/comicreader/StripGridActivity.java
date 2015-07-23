@@ -8,7 +8,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,6 +15,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.arielvila.comicreader.adapter.DrawerListAdapter;
+import com.arielvila.comicreader.download.DownloadService;
+import com.arielvila.comicreader.helper.AppConstant;
 import com.arielvila.comicreader.helper.DirContents;
 import com.arielvila.comicreader.helper.DrawerItem;
 import com.arielvila.comicreader.helper.StripMenu;
@@ -27,9 +28,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         StripDetailFragment.StripDetailCallbacks {
 
     private static final String TAG = "StripGridActivity";
-    private static final String STATE_FIRST_START = "firstStart";
-    // Whether or not the activity is in two-pane mode, i.e. running on a tablet
-    private boolean mTwoPane;
+    private boolean mTwoPane; // Whether or not the activity is in two-pane mode, i.e. running on a tablet
     private ActionBarDrawerToggle mDrawerToggle;
     private StripDetailFragment mStripDetailFragment = null;
     private StripGridFragment mStripGridFragment = null;
@@ -87,7 +86,6 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         super.onStart();
         Intent intent = getIntent();
         String openLast = intent.getStringExtra(StartActivity.START_PARAMETER_OPEN_LAST);
-        Log.i(TAG, "oStart() openLast: " + openLast);
         if (openLast != null && !openLast.equals("")) {
             int position = DirContents.getInstance().getDataFilePosition(openLast);
             if (position >= 0) {
@@ -155,6 +153,36 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         mStripGridFragment = stripGridFragment;
     }
 
+    @Override
+    public void startDownload(int mode) {
+        if (DirContents.getInstance().isCurrDirFav()) {
+            toggleFavorites();
+        } else {
+            clearSecondPaneFragment();
+        }
+        setDownloadingMode();
+        Intent downloadIntent = new Intent(this, DownloadService.class);
+        downloadIntent.putExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, mode);
+        downloadIntent.putExtra(AppConstant.DOWNLOAD_QTTY, getResources().getInteger(R.integer.download_qtty));
+        startService(downloadIntent);
+    }
+
+    @Override
+    public void setDownloadingMode() {
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+    }
+
+    @Override
+    public void onDownloadEnded() {
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+    }
+
     public Context getContext() {
         return this;
     }
@@ -189,14 +217,19 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         mStripGridFragment.updateDirectory();
         drawerListAdapter.insert(mFavoriteDrawerItem, 0);
         setAppTitle("");
+        clearSecondPaneFragment();
+    }
+
+    private void clearSecondPaneFragment() {
         if (mTwoPane) {
+            mStripGridFragment.clearCurrentStrip();
             StripMenu.getInstance().setShareMenuIcon(R.drawable.ic_star_invisible_24dp);
             StripMenu.getInstance().setFavMenuIcon(R.drawable.ic_star_invisible_24dp);
-            getSupportFragmentManager().beginTransaction()
-                    .remove(mStripDetailFragment)
-                    .commit();
             if (mStripDetailFragment != null) {
                 mStripDetailFragment.clearCurrentStrip();
+                getSupportFragmentManager().beginTransaction()
+                        .remove(mStripDetailFragment)
+                        .commit();
             }
         }
     }
