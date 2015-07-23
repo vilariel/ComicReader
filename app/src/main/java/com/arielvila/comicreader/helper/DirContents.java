@@ -20,10 +20,9 @@ import java.util.Locale;
 
 public class DirContents {
     private static final String TAG = "DirContents";
-    private static DirContents instance = null;
-
     private static final int CURR_DIR_DATA = 1;
     private static final int CURR_DIR_FAV = 2;
+    private static DirContents instance = null;
     private int mCurrDirId = CURR_DIR_DATA;
     private ArrayList<String> mDataDir = new ArrayList<>();
     private ArrayList<String> mFavDir = new ArrayList<>();
@@ -31,6 +30,7 @@ public class DirContents {
     private String mDataPath = null;
     private String mFavPath = null;
     private SimpleDateFormat mDateFormatShort = new SimpleDateFormat("yyyy-MM-dd");
+    private boolean mFavDirPathChanged = false;
 
     public static DirContents getInstance() {
         if (instance == null) {
@@ -156,6 +156,14 @@ public class DirContents {
                 refreshFavDir();
             }
         }
+    }
+
+    public boolean isFavDirPathChanged() {
+        return mFavDirPathChanged;
+    }
+
+    public void setFavDirPathChanged(boolean favDirPathChanged) {
+        this.mFavDirPathChanged = favDirPathChanged;
     }
 
     private void copyFileToFav(String fileName) {

@@ -123,6 +123,18 @@ public class StripGridFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (DirContents.getInstance().isFavDirPathChanged()) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            DirContents.getInstance().refreshFavDir(prefs.getString("favdir", ""));
+            if (DirContents.getInstance().isCurrDirFav()) {
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
     private void downloadNow() {
         mAdapter.setAllowsClick(false);
         // Workaround as mSwipeLayout.setRefreshing(true); doesn't work

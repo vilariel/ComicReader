@@ -35,8 +35,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (key.equals("favdir")) {
-            DirContents.getInstance().refreshFavDir(prefs.getString("favdir", ""));
-            //TODO: Call mAdapter.notifyDataSetChanged() of StripGridFragment
+            DirContents.getInstance().setFavDirPathChanged(true);
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "Favdir set to: " + prefs.getString("favdir", ""));
             }
