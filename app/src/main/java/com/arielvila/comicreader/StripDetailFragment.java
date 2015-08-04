@@ -19,7 +19,7 @@ import android.widget.Toast;
 
 import com.arielvila.comicreader.adapter.IStripImageFragment;
 import com.arielvila.comicreader.adapter.StripImageAdapter;
-import com.arielvila.comicreader.animation.DepthPageTransformer;
+import com.arielvila.comicreader.animation.ZoomOutPageTransformer;
 import com.arielvila.comicreader.helper.AppConstant;
 import com.arielvila.comicreader.helper.DirContents;
 import com.arielvila.comicreader.helper.ExtendedViewPager;
@@ -71,7 +71,7 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         View fragmentView = inflater.inflate(R.layout.fragment_strip_detail, container, false);
 
         ExtendedViewPager viewPager = (ExtendedViewPager) fragmentView.findViewById(R.id.pager);
-        viewPager.setPageTransformer(true, new DepthPageTransformer());
+        viewPager.setPageTransformer(true, new ZoomOutPageTransformer());
 
         mComicsDir = DirContents.getInstance().getCurrDir();
 
