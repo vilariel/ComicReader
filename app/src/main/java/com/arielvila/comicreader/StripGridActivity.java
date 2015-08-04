@@ -88,6 +88,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         Intent intent = getIntent();
         String openLast = intent.getStringExtra(StartActivity.START_PARAMETER_OPEN_LAST);
         if (openLast != null && !openLast.equals("")) {
+            intent.putExtra(StartActivity.START_PARAMETER_OPEN_LAST, "");
             int position = DirContents.getInstance().getDataFilePosition(openLast);
             if (position >= 0) {
                 selectItem(String.valueOf(position));
