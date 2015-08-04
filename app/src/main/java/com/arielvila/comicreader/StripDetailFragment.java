@@ -1,21 +1,26 @@
 package com.arielvila.comicreader;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.arielvila.comicreader.adapter.IStripImageFragment;
 import com.arielvila.comicreader.adapter.StripImageAdapter;
 import com.arielvila.comicreader.animation.DepthPageTransformer;
+import com.arielvila.comicreader.helper.AppConstant;
 import com.arielvila.comicreader.helper.DirContents;
 import com.arielvila.comicreader.helper.ExtendedViewPager;
 import com.arielvila.comicreader.helper.StripMenu;
@@ -37,6 +42,7 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
     private String mCurrentStripName = "";
     private ArrayList<String> mComicsDir;
     private StripImageAdapter mAdapter;
+    private DownloadStateReceiver mDownloadStateReceiver = null;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -76,6 +82,14 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
         // displaying selected image first
         viewPager.setCurrentItem(mInitialPosition);
 
+        mDownloadStateReceiver = new DownloadStateReceiver();
+        // The filter's action is BROADCAST_ACTION
+        IntentFilter intentFilter = new IntentFilter(AppConstant.BROADCAST_SAVED_FILE_ACTION);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mDownloadStateReceiver, intentFilter);
+        intentFilter = new IntentFilter(AppConstant.BROADCAST_DOWNLOAD_GROUP_END);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mDownloadStateReceiver, intentFilter);
+        intentFilter = new IntentFilter(AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mDownloadStateReceiver, intentFilter);
         return fragmentView;
     }
 
@@ -137,6 +151,45 @@ public class StripDetailFragment extends Fragment implements IStripImageFragment
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(shareIntent);
         }
+    }
+
+    private class DownloadStateReceiver extends BroadcastReceiver {
+
+        private DownloadStateReceiver() {
+            // prevents instantiation by other packages.
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case AppConstant.BROADCAST_SAVED_FILE_ACTION:
+                    mAdapter.notifyDataSetChanged();
+                    break;
+                case AppConstant.BROADCAST_DOWNLOAD_GROUP_END:
+                    mAdapter.notifyDataSetChanged();
+                    break;
+                case AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR:
+                    String error = intent.getStringExtra(AppConstant.BROADCAST_ACTION);
+                    Toast.makeText(StripDetailFragment.this.getActivity(), error, Toast.LENGTH_LONG).show();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /*
+     * This callback is invoked when the system is about to destroy the Activity.
+     */
+    @Override
+    public void onDestroy() {
+        // If the DownloadStateReceiver still exists, unregister it and set it to null
+        if (mDownloadStateReceiver != null) {
+            LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mDownloadStateReceiver);
+            mDownloadStateReceiver = null;
+        }
+        // Must always call the super method at the end.
+        super.onDestroy();
     }
 
     public interface StripDetailCallbacks {

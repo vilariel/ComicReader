@@ -105,7 +105,7 @@ public class DirContents {
     }
 
     public boolean isDataDirUpToDate() {
-        String lastStripName = getLastDataFile().replaceAll(".*/", "").replaceAll("\\..*", "");
+        String lastStripName = getFirstDataFile().replaceAll(".*/", "").replaceAll("\\..*", "");
         Calendar calendar = new GregorianCalendar();
         calendar.setTimeInMillis(((Date) new Date()).getTime());
         String todayStr = mDateFormatShort.format(calendar.getTime());
@@ -229,6 +229,7 @@ public class DirContents {
                 }
             }
             Collections.sort(listDir);
+            Collections.reverse(listDir);
         } else {
             Log.e(TAG, "Error - Not a directory: " + directoryName);
         }

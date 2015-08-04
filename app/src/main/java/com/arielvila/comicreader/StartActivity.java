@@ -21,7 +21,7 @@ public class StartActivity extends Activity {
         super.onCreate(savedInstanceState);
         setPreferencesDefaultValues();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-//        DirContents.getInstance().removeContent(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("datadir", ""));
+//        DirContents.getInstance().removeContent(prefs.getString("datadir", ""));
         DirContents.getInstance().refreshDataDir(prefs.getString("datadir", ""));
         DirContents.getInstance().refreshFavDir(prefs.getString("favdir", ""));
         Intent intent = new Intent(this, StripGridActivity.class);

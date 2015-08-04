@@ -10,4 +10,6 @@
     <string name="favoritesTitleData">All</string>
     <string name="prefFavdirTitle">Favorites folder</string>
     <string name="prefFavdirSummary">Offline favorite strips container folder</string>
+    <string name="downloadTitle">Download previous</string>
+    <string name="mayWantDownloadPrevious">The application is up to date. Select \"Download previous\" to get older strips</string>
 </resources>

@@ -75,7 +75,7 @@ public class StripGridFragment extends Fragment {
         mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                initiateRefresh();
+                downloadLasts(true);
             }
         });
 
@@ -123,7 +123,7 @@ public class StripGridFragment extends Fragment {
             setDownloadingMode(false);
             ((StripGridCallbacks) getActivity()).setDownloadingMode();
         } else if (DirContents.getInstance().getDataDir().size() == 0 || !DirContents.getInstance().isDataDirUpToDate()) {
-            downloadNow();
+            downloadLasts(true);
         }
     }
 
@@ -139,21 +139,26 @@ public class StripGridFragment extends Fragment {
         }
     }
 
-    private void downloadNow() {
-        setDownloadingMode(false);
-        mLastTimeRefreshed = (new Date()).getTime();
-        ((StripGridCallbacks) getActivity()).startDownload(AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
+    private void downloadLasts(boolean fromSwipeDown) {
+        if (fromSwipeDown && DirContents.getInstance().isDataDirUpToDate()) {
+            mSwipeLayout.setRefreshing(false);
+            Toast.makeText(getActivity(), R.string.mayWantDownloadPrevious, Toast.LENGTH_LONG).show();
+        } else {
+            setDownloadingMode(fromSwipeDown);
+            mLastTimeRefreshed = (new Date()).getTime();
+            ((StripGridCallbacks) getActivity()).startDownload(AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE);
+        }
     }
 
-    private void initiateRefresh() {
-        setDownloadingMode(true);
+    public void downloadPrevious() {
+        setDownloadingMode(false);
         mLastTimeRefreshed = (new Date()).getTime();
         ((StripGridCallbacks) getActivity()).startDownload(AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS);
     }
 
     private void setDownloadingMode(boolean fromSwipeDown) {
         mRetainFragment.setDownloading(true);
-        mAdapter.setAllowsClick(false);
+        //mAdapter.setAllowsClick(false);
         if (!fromSwipeDown) {
             // Workaround as mSwipeLayout.setRefreshing(true); doesn't work
             mSwipeLayout.post(new Runnable() {
@@ -195,7 +200,11 @@ public class StripGridFragment extends Fragment {
         }
         if (position >= 0) {
             mRecyclerView.scrollToPosition(DirContents.getInstance().getCurrDir().size() - 1);
-            mRecyclerView.smoothScrollToPosition(position);
+            if (smoothly) {
+                mRecyclerView.smoothScrollToPosition(position);
+            } else {
+                mRecyclerView.scrollToPosition(position);
+            }
         }
     }
 
@@ -215,15 +224,24 @@ public class StripGridFragment extends Fragment {
                 case AppConstant.BROADCAST_SAVED_FILE_ACTION:
                     if ((new Date()).getTime() >= mLastTimeRefreshed + AppConstant.REFRESH_INTERVAL_MILLISECONDS) {
                         mLastTimeRefreshed = (new Date()).getTime();
+                        DirContents.getInstance().refreshDataDir();
                         mAdapter.notifyDataSetChanged();
+                        if (intent.getIntExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE) ==
+                                AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS) {
+                            mRecyclerView.smoothScrollToPosition(DirContents.getInstance().getCurrDir().size() - 1);
+                        }
                     }
                     break;
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_END:
                     mRetainFragment.setDownloading(false);
                     mSwipeLayout.setRefreshing(false);
                     mAdapter.notifyDataSetChanged();
-                    mAdapter.setAllowsClick(true);
+                    //mAdapter.setAllowsClick(true);
                     ((StripGridCallbacks) getActivity()).onDownloadEnded();
+                    if (intent.getIntExtra(AppConstant.DOWNLOAD_EXTRA_ACTION, AppConstant.DOWNLOAD_ACTION_FIRSTRUN_OR_SHEDULE) ==
+                            AppConstant.DOWNLOAD_ACTION_GET_PREVIOUS) {
+                        mRecyclerView.smoothScrollToPosition(DirContents.getInstance().getCurrDir().size() - 1);
+                    }
                     break;
                 case AppConstant.BROADCAST_DOWNLOAD_GROUP_ERROR:
                     String error = intent.getStringExtra(AppConstant.BROADCAST_ACTION);
@@ -263,7 +281,6 @@ public class StripGridFragment extends Fragment {
         void startDownload(int mode);
         void setDownloadingMode();
         void onDownloadEnded();
-
     }
 
 }

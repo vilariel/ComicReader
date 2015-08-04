@@ -10,4 +10,6 @@
     <string name="favoritesTitleData">Todos</string>
     <string name="prefFavdirTitle">Directorio de favoritos</string>
     <string name="prefFavdirSummary">Directorio donde se guardan los chistes favoritos</string>
+    <string name="downloadTitle">Obtener anteriores</string>
+    <string name="mayWantDownloadPrevious">La aplicación está actualizada. Seleccione \"Obtener anteriores\" para descargar cómics más viejos</string>
 </resources>

@@ -53,6 +53,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         mFavoriteDrawerItemData = new DrawerItem(R.string.favoritesTitleData, R.drawable.ic_star_half_white_18dp);
         mFavoriteDrawerItem = (DirContents.getInstance().isCurrDirData()) ? mFavoriteDrawerItemFav : mFavoriteDrawerItemData;
         items.add(mFavoriteDrawerItem);
+        items.add(new DrawerItem(R.string.downloadTitle, R.drawable.ic_cloud_download_white_18dp));
         items.add(new DrawerItem(R.string.prefTitle, R.drawable.ic_settings_white_18dp));
 
         mDrawerList.setAdapter(new DrawerListAdapter(this, items));
@@ -158,7 +159,7 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         if (DirContents.getInstance().isCurrDirFav()) {
             toggleFavorites();
         } else {
-            clearSecondPaneFragment();
+            //clearSecondPaneFragment();
         }
         setDownloadingMode();
         Intent downloadIntent = new Intent(this, DownloadService.class);
@@ -169,18 +170,18 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
 
     @Override
     public void setDownloadingMode() {
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        getSupportActionBar().setHomeButtonEnabled(false);
-        mDrawerToggle.setDrawerIndicatorEnabled(false);
+//        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+//        getSupportActionBar().setHomeButtonEnabled(false);
+//        mDrawerToggle.setDrawerIndicatorEnabled(false);
     }
 
     @Override
     public void onDownloadEnded() {
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        mDrawerToggle.setDrawerIndicatorEnabled(true);
+//        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setHomeButtonEnabled(true);
+//        mDrawerToggle.setDrawerIndicatorEnabled(true);
     }
 
     public Context getContext() {
@@ -199,6 +200,8 @@ public class StripGridActivity extends ActionBarActivity implements StripGridFra
         if (position == 0) {
             toggleFavorites();
         } else if (position == 1) {
+            mStripGridFragment.downloadPrevious();
+        } else if (position == 2) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
         }
