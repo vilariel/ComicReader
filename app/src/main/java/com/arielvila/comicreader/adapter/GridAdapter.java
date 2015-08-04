@@ -17,7 +17,6 @@ import android.widget.TextView;
 import com.arielvila.comicreader.BuildConfig;
 import com.arielvila.comicreader.R;
 import com.arielvila.comicreader.StripGridFragment;
-import com.arielvila.comicreader.helper.PicassoCache;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
