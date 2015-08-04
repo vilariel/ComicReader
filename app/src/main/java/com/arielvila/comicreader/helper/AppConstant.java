@@ -24,7 +24,7 @@ public class AppConstant {
 
     public static final String STRIP_DIR_URL = "http://remisesramallo.com.ar/utils/dilbert/strip/";
 
-    public static final int DEFAULT_GROUP_QTTY_TO_DOWNLOAD = 15;
+    public static final int DEFAULT_GROUP_QTTY_TO_DOWNLOAD = 30;
 
     public static final String DOWNLOAD_EXTRA_ACTION = "DOWNLOAD_EXTRA_ACTION";
 

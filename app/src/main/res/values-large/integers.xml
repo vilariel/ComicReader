@@ -2,5 +2,5 @@
 <resources>
     <integer name="grid_columns">2</integer>
     <integer name="grid_width_dp">150</integer>
-    <integer name="download_qtty">22</integer>
+    <integer name="download_qtty">30</integer>
 </resources>

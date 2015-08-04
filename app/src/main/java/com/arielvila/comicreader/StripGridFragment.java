@@ -90,7 +90,7 @@ public class StripGridFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         mAdapter = new GridAdapter((StripGridCallbacks) getActivity(), DirContents.getInstance().getCurrDir(), inflater,
-                container, fragmentWidthPixels, columns, metrics.density, mRetainFragment.getRetainedCache());
+                container, fragmentWidthPixels, columns, metrics.density);
         mAdapter.setLoadingImage(R.drawable.empty_photo);
         mRecyclerView.setAdapter(mAdapter);
 
@@ -187,7 +187,7 @@ public class StripGridFragment extends Fragment {
 
     public void updateDirectory() {
         mAdapter.changeFilePaths(DirContents.getInstance().getCurrDir());
-        scrollToLastViewed(true);
+        scrollToLastViewed(false);
     }
 
     public void scrollToLastViewed(boolean smoothly) {

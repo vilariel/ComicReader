@@ -1,12 +1,7 @@
 package com.arielvila.comicreader.adapter;
 
+import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.support.v4.util.LruCache;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -22,11 +17,9 @@ import android.widget.TextView;
 import com.arielvila.comicreader.BuildConfig;
 import com.arielvila.comicreader.R;
 import com.arielvila.comicreader.StripGridFragment;
+import com.arielvila.comicreader.helper.PicassoCache;
+import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,13 +34,13 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     private LayoutInflater mInflater;
     private ViewGroup mContainer;
     private Resources mResources;
+    private Context mContext;
     private int mCardWidth;
     private int mLayoutHeight;
     private int mImageHeight;
     private int mTextHeight;
     private int mTextSize;
-    private Bitmap mLoadingBitmap;
-    private LruCache<String, Bitmap> mMemoryCache;
+    private int mLoadingBitmapResId;
     private boolean mAllowsClick;
 
     public static final int CHOICE_MODE_NONE = 0;
@@ -55,18 +48,17 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     public static final int CHOICE_MODE_MULTIPLE = 2;
 
     public GridAdapter(StripGridFragment.StripGridCallbacks callback, ArrayList<String> filePaths,
-                       LayoutInflater inflater, ViewGroup container, int width, int columns, float density,
-                       LruCache<String, Bitmap> memoryCache) {
+                       LayoutInflater inflater, ViewGroup container, int width, int columns, float density) {
         super();
         mInflater = inflater;
         mContainer = container;
         mCallback = callback;
         mFilePaths = filePaths;
-        mResources = callback.getContext().getResources();
+        mContext = callback.getContext();
+        mResources = mContext.getResources();
         mSelectedItems = new SparseBooleanArray();
         mChoiceMode = CHOICE_MODE_NONE;
         mAllowsClick = true;
-        mMemoryCache = memoryCache;
         mCardWidth = Math.round(new Float(width / columns * 0.95));
         mLayoutHeight = Math.round(new Float(width / columns * 1.0708));
         mImageHeight = Math.round(new Float(width / columns * 0.8075));
@@ -201,12 +193,11 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
      * Clear the selection status for all items
      */
     public void clearSelection() {
-//        List<Integer> selection = getSelectedItems();
+        List<Integer> selection = getSelectedItems();
         mSelectedItems.clear();
-        notifyDataSetChanged();
-//        for (Integer i : selection) {
-//            notifyItemChanged(i);
-//        }
+        for (Integer i : selection) {
+            notifyItemChanged(i);
+        }
     }
 
     /**
@@ -232,33 +223,14 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
     /**
      * Set placeholder bitmap that shows when the the background thread is running.
      *
-     * @param bitmap
-     */
-    public void setLoadingImage(Bitmap bitmap) {
-        mLoadingBitmap = bitmap;
-    }
-
-    /**
-     * Set placeholder bitmap that shows when the the background thread is running.
-     *
      * @param resId
      */
     public void setLoadingImage(int resId) {
-        mLoadingBitmap = BitmapFactory.decodeResource(mResources, resId);
+        mLoadingBitmapResId = resId;
     }
 
     public void setAllowsClick(boolean allowsClick) {
         this.mAllowsClick = allowsClick;
-    }
-
-    public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
-        if (getBitmapFromMemCache(key) == null) {
-            mMemoryCache.put(key, bitmap);
-        }
-    }
-
-    public Bitmap getBitmapFromMemCache(String key) {
-        return mMemoryCache.get(key);
     }
 
     class OnImageClickListener implements OnClickListener {
@@ -283,124 +255,8 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
      * Resizing image size
      */
     public void loadBitmap(String filePath, ImageView imageView) {
-        final Bitmap bitmap = getBitmapFromMemCache(filePath);
-        if (bitmap != null) {
-            imageView.setImageBitmap(bitmap);
-        } else {
-            if (cancelPotentialWork(filePath, imageView)) {
-                final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
-                final AsyncDrawable asyncDrawable = new AsyncDrawable(mResources, mLoadingBitmap, task);
-                imageView.setImageDrawable(asyncDrawable);
-                task.execute(filePath);
-            }
-        }
+        Picasso.with(mContext).load("file://" + filePath).resize(500, 200)
+                .placeholder(mLoadingBitmapResId).centerCrop().into(imageView);
     }
 
-    public static boolean cancelPotentialWork(String data, ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-        if (bitmapWorkerTask != null) {
-            final String bitmapData = bitmapWorkerTask.getData();
-            // If bitmapData is not yet set or it differs from the new data
-            if (bitmapData == null || !bitmapData.equals(data)) {
-                // Cancel previous task
-                bitmapWorkerTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
-            }
-        }
-        // No task associated with the ImageView, or an existing task was cancelled
-        return true;
-    }
-
-    private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof AsyncDrawable) {
-                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-                return asyncDrawable.getBitmapWorkerTask();
-            }
-        }
-        return null;
-    }
-
-    static class AsyncDrawable extends BitmapDrawable {
-        private final WeakReference<BitmapWorkerTask> mBitmapWorkerTaskReference;
-
-        public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask bitmapWorkerTask) {
-            super(res, bitmap);
-            mBitmapWorkerTaskReference = new WeakReference<BitmapWorkerTask>(bitmapWorkerTask);
-        }
-
-        public BitmapWorkerTask getBitmapWorkerTask() {
-            return mBitmapWorkerTaskReference.get();
-        }
-    }
-
-    public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
-        private final WeakReference<ImageView> mImageViewReference;
-        private String mData = null;
-
-        public BitmapWorkerTask(ImageView imageView) {
-            // Use a WeakReference to ensure the ImageView can be garbage collected
-            mImageViewReference = new WeakReference<ImageView>(imageView);
-        }
-
-        public String getData() {
-            return mData;
-        }
-
-        // Decode image in background.
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            mData = params[0];
-            final Bitmap bitmap = decodeFile(mData, 400, 100);
-            if (bitmap != null) {
-                addBitmapToMemoryCache(params[0], bitmap);
-            }
-            return bitmap;
-        }
-
-        // Once complete, see if ImageView is still around and set bitmap.
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled()) {
-                bitmap = null;
-            }
-            if (mImageViewReference != null && bitmap != null) {
-                final ImageView imageView = mImageViewReference.get();
-                final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-                if (this == bitmapWorkerTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                }
-            }
-        }
-
-        /*
-         * Resizing image size
-         */
-        public Bitmap decodeFile(String filePath, int width, int height) {
-            try {
-
-                File f = new File(filePath);
-
-                BitmapFactory.Options o = new BitmapFactory.Options();
-                o.inJustDecodeBounds = true;
-                BitmapFactory.decodeStream(new FileInputStream(f), null, o);
-
-                int scale = 1;
-                while (o.outWidth / scale / 2 >= width
-                        && o.outHeight / scale / 2 >= height)
-                    scale *= 2;
-
-                BitmapFactory.Options o2 = new BitmapFactory.Options();
-                o2.inSampleSize = scale;
-                return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-    }
 }
